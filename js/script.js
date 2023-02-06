@@ -357,6 +357,7 @@ function canvasApp()  {
         isCreateElement = false; //default - false
         isPlayTheGame = false;
         isIdleScreen = true;
+        isGameStart = false;
         isGamePaused = false;
         isGameReset = false;
         isGameOver = false;
@@ -453,6 +454,7 @@ function canvasApp()  {
                 let arrElements = [];
                 const delay = 250;
                 const delayInterval = 500;
+
                 //создаем
                 for ( let row = 0; row < 20; row++ ) {
                     arrElements[row] = [];
@@ -466,7 +468,7 @@ function canvasApp()  {
                 for ( let row = 0; row < 20; row++ ) {
                     for ( let col = 0; col < 10; col++ ) {
                         if ( row === arrRandomIndeces[col] ) {
-                            console.log( arrRandomIndeces[col] );
+                            //console.log( arrRandomIndeces[col] );
                             delete arrElements[row][col];
                         }
                     }
@@ -511,9 +513,12 @@ function canvasApp()  {
         }
         //starts Demo load
         startGame() {
-            if ( this.isPressStart && !this.isPlayTheGame ) {
+            if ( this.isGameStart && !this.isPlayTheGame ) {
+                this.isGameStart = false;
                 let arrElements = [];
                 const delay = 100;
+                const delayInterval = 500;
+
                 for ( let row = 0; row < 20; row++ ) {
                     arrElements[row] = [];
                     for ( let col = 0; col < 10; col++ ) {
@@ -546,7 +551,7 @@ function canvasApp()  {
                                         if ( this.isGameReset ) {
                                             this.isGameReset = false;
                                         }
-                                    }, 500 );
+                                    }, delayInterval );
                                     clearInterval( timer );
                                 }
                         }
@@ -651,6 +656,10 @@ function canvasApp()  {
                 }else{
                     ctxSideUI.fillText( `${ s }`, this.coords.x + 40, this.coords.y + 307 );
                 }
+                if ( this.isGamePaused ) {
+                    ctxSideUI.fillText( 'Paused', this.coords.x + 15, this.coords.y + 340 );
+                }
+
                 this.isRedrawSideUI = false;
             }
         }
@@ -886,9 +895,12 @@ function canvasApp()  {
             }
             if ( ctxUI.isPointInPath( this.buttonStart, mouseClickCoords.x, mouseClickCoords.y ) ) {
                 console.log('Start');
-                ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height)
-                clearInterval( this.timerIdle );
-                this.isIdleScreen = false;
+                if ( !this.isGameStart && !this.isPlayTheGame && !this.isGamePaused ) {
+                    ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height);
+                    clearInterval( this.timerIdle );
+                    this.isIdleScreen = false;
+                    this.isGameStart = true;
+                }
                 this.isPressStart = true;
                 this.isRedrawUI = true;
             }
@@ -904,9 +916,11 @@ function canvasApp()  {
                 console.log( 'Pause' );
                 if ( !this.isGamePaused && this.isPlayTheGame ) {
                     this.isGamePaused = true;
+                    this.isRedrawSideUI = true;
                 }else
                     if ( this.isGamePaused && this.isPlayTheGame ) {
                         this.isGamePaused = false;
+                        this.isRedrawSideUI = true;
                     }
                 this.isPressPause = true;
                 this.isRedrawUI = true;
@@ -1678,8 +1692,7 @@ function canvasApp()  {
                 }
                 this.arrCurrentNextBoxes = [];
                 this.arrCurrentStageBoxes = [];
-               // this.arrStageBoxes = [];
-                //this.arrGameOverBoxes = [];
+
                 { //arrStageBoxes
                     for ( let row = 0; row < 20; row++ ) {
                         this.arrStageBoxes[row] = [];
@@ -1708,15 +1721,18 @@ function canvasApp()  {
 
                 this.isPlayTheGame = false;
                 this.isGamePaused = false;
-                this.isPressStart = true;
+                this.isGameStart = true;
+                //this.isPressStart = true;
                 this.isRedrawSideUI = true;
                 this.#pauseStart = undefined;
                 
                 this.startGame(); 
                 
                 setTimeout( () => {
+                    this.isGamePaused = true;
+                    this.isRedrawSideUI = true;
                     this.isCreateElement = false;
-                }, 500 );
+                }, 4000 );
 
             }
         }
@@ -1934,19 +1950,23 @@ function canvasApp()  {
                 game.isRedrawUI = true;
                 break;
             case 'KeyS': //старт
-            /*
-                ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height)
-                clearInterval( game.timerIdle );
-                game.isIdleScreen = false;*/
+                if ( !game.isGameStart && !game.isPlayTheGame && !game.isGamePaused ) {
+                    ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height)
+                    clearInterval( game.timerIdle );
+                    game.isIdleScreen = false;
+                    game.isGameStart = true;
+                }
                 game.isPressStart = true;
                 game.isRedrawUI = true;
                 break;
             case 'KeyP': //пауза
-                if ( !game.isGamePaused && game.isPlayTheGame && !isGameOver ) {
+                if ( !game.isGamePaused && game.isPlayTheGame && ! game.isGameOver ) {
                     game.isGamePaused = true;
+                    game.isRedrawSideUI = true;
                 }else
-                    if ( game.isGamePaused && game.isPlayTheGame && !isGameOver ) {
+                    if ( game.isGamePaused && game.isPlayTheGame && ! game.isGameOver ) {
                         game.isGamePaused = false;
+                        game.isRedrawSideUI = true;
                     }
                 game.isPressPause = true;
                 game.isRedrawUI = true;
