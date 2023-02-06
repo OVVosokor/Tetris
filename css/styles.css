@@ -1,0 +1,55 @@
+.-container{
+    display: flex;
+    position: relative;
+    justify-content: center;
+    /* margin-top: 20px;*/
+}
+
+canvas{
+    position: absolute;
+    border: 1px solid black;
+    border: none;
+}
+#myCanvas_stage{
+    z-index: 3;
+    /*margin-right: 40px;*/
+    /*top: 10px;*/
+    border: none;
+}
+
+#myCanvas_stage_logical{
+    z-index: 3;
+    /*margin-right: 40px;*/
+    /*top: 10px;*/
+    border: none;
+}
+
+
+#myCanvas_ui{
+    z-index: 2;
+    border: none;
+    top: 440px;
+}
+
+#myCanvas_bg{
+    z-index: 1;
+}
+
+#myCanvas_side_ui{
+    z-index: 3;
+    margin-left: 350px;
+    border: none;
+}
+
+#myCanvas_side_ui_logical{
+    z-index: 3;
+    margin-left: 335px;
+    margin-top: 30px;
+    border: none;
+}
+#myCanvas_next_stage{
+    z-index: 3;
+    margin-left: 335px;
+    margin-top: 30px;
+    border: none;
+}

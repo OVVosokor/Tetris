@@ -1,0 +1,34 @@
+.wrapper {
+	min-height: 100%;
+	overflow: hidden;
+	display: flex;         /*для прибития подвала к низу*/
+	flex-direction: column; /*для прибития подвала к низу*/
+}
+/*-------Техническое правило--------------*/
+.-container {
+	max-width: 1920px; /*-----ширина макета (контейнера) в зависимости от проекта----*/
+	margin: 0px auto;
+}
+.-container--content {
+	max-width: 1140px; /*-----ширина макета (контейнера) в зависимости от проекта----*/
+	margin: 0px auto;
+}
+
+/*правило _ibg для заполнения картинки <img> как фон - это для упрощения интеграции с бэкендом*/
+-ibg{
+	position: relative;
+}
+-ibg img{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	object-fit: cover;
+}
+/*
+@font-face {
+
+}*/
+
+/*--------------------------------------------*/
