@@ -356,6 +356,7 @@ function canvasApp()  {
         isDrawLogicalMeshStage = false;
         isCreateElement = false; //default - false
         isPlayTheGame = false;
+        isIdleScreen = true;
         isGamePaused = false;
         isGameReset = false;
         isGameOver = false;
@@ -366,6 +367,7 @@ function canvasApp()  {
         isElementDrop = false;
         isElementRotate = false;
         #pauseStart = undefined;
+        timerIdle;
 
         //startUp
         init() {
@@ -437,6 +439,76 @@ function canvasApp()  {
             }
             gameLoop();
         }
+        idleScreen() {
+            if ( this.isIdleScreen ) {
+                let randomColumn;
+                let arrRandomIndeces = [];
+
+                for ( let i = 0; i < 20; i++ ) {
+                    randomColumn = Math.floor( Math.random() * 20 );
+                    arrRandomIndeces;
+                    arrRandomIndeces.push( randomColumn );
+                }
+
+                let arrElements = [];
+                const delay = 250;
+                const delayInterval = 500;
+                //создаем
+                for ( let row = 0; row < 20; row++ ) {
+                    arrElements[row] = [];
+                    for ( let col = 0; col < 10; col++ ) {
+                        arrElements[row][col] = new Box( 'stageBox' );
+                        arrElements[row][col].coords.x = this.arrLogicalCells[row][col].coords.x;
+                        arrElements[row][col].coords.y = this.arrLogicalCells[row][col].coords.y;
+                    }
+                }
+                //удаляем лишние
+                for ( let row = 0; row < 20; row++ ) {
+                    for ( let col = 0; col < 10; col++ ) {
+                        if ( row === arrRandomIndeces[col] ) {
+                            console.log( arrRandomIndeces[col] );
+                            delete arrElements[row][col];
+                        }
+                    }
+                }
+               // console.log( arrElements );
+                //интервал для задержки рисования
+                let startIndex = 20;
+                let startIndexToBottom = 0;
+
+                this.timerIdle = setInterval( () => {
+                if ( startIndex !== 0 ) {
+                        startIndex--;
+                        for ( let i = 0; i < 10; i++ ) {
+                            if ( typeof arrElements[startIndex][i] === 'object' ) {
+                                arrElements[startIndex][i].drawBox();
+                            }
+                        }
+                    }
+                    else
+                        if ( startIndex === 0 ) {
+                            if ( startIndexToBottom >= 0  && startIndexToBottom < 20 ) {
+                                for ( let i = 0; i < 10; i++ ) {
+                                    if ( typeof arrElements[startIndexToBottom][i] === 'object' ) {
+                                    arrElements[startIndexToBottom][i].clearBox();
+                                    }
+                                }
+                                startIndexToBottom++;
+                            }
+                            else
+                                if ( startIndexToBottom === 20 ) {
+                                    setTimeout( () => {
+                                        this.isIdleScreen = true;
+                                    }, delayInterval );
+                                    clearInterval( this.timerIdle );
+                                }
+                        }
+                }, delay );
+
+
+                this.isIdleScreen = false;
+            }
+        }
         //starts Demo load
         startGame() {
             if ( this.isPressStart && !this.isPlayTheGame ) {
@@ -467,7 +539,6 @@ function canvasApp()  {
                                     arrElements[startIndexToBottom][i].clearBox();
                                 }
                                 startIndexToBottom++;
-
                             }else
                                 if ( startIndexToBottom === 20 ) {
                                     setTimeout( () => {
@@ -815,6 +886,9 @@ function canvasApp()  {
             }
             if ( ctxUI.isPointInPath( this.buttonStart, mouseClickCoords.x, mouseClickCoords.y ) ) {
                 console.log('Start');
+                ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height)
+                clearInterval( this.timerIdle );
+                this.isIdleScreen = false;
                 this.isPressStart = true;
                 this.isRedrawUI = true;
             }
@@ -1453,7 +1527,6 @@ function canvasApp()  {
                             this.isGamePaused = true;
                             this.isGameOver = true;
                         }
-        
                     }
                 }
             }
@@ -1657,6 +1730,8 @@ function canvasApp()  {
             this.drawLogicalMeshStage();
             this.checkPressButtons();
             this.drawSideUI();
+
+            this.idleScreen();
             this.startGame();
             this.createElements();
             this.updateElement();
@@ -1787,10 +1862,6 @@ function canvasApp()  {
     }
 
     //обработчики событий
-    function mouseMoveHandler( e ) {
-        mouseMoveCoords.x = e.offsetX;
-        mouseMoveCoords.y = e.offsetY;
-    }
 
     function mouseUpHandler( e ) {
         if ( e.target.id === 'myCanvas_ui' ) {
@@ -1863,6 +1934,10 @@ function canvasApp()  {
                 game.isRedrawUI = true;
                 break;
             case 'KeyS': //старт
+            /*
+                ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height)
+                clearInterval( game.timerIdle );
+                game.isIdleScreen = false;*/
                 game.isPressStart = true;
                 game.isRedrawUI = true;
                 break;
