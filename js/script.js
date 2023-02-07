@@ -39,20 +39,6 @@ function canvasApp()  {
         x: 0,
         y: 0
     };
-/*
-    let mouseClickSideCoords = {
-        x: 0,
-        y: 0
-    };
-    let mouseClickSideLogicCoords = {
-        x: 0,
-        y: 0
-    };
-    let mouseClickStageLogicCoords = {
-        x: 0,
-        y: 0
-    };*/
-
 
     class Game {
         coords = {
@@ -334,6 +320,7 @@ function canvasApp()  {
         
         #defaultSpeed = 0.125;
         #speed = this.#defaultSpeed; //0.125
+        dropSpeed = 3;
         #deltaTimer = 60;
         #deltaSpeed = 0.125;
 
@@ -352,21 +339,26 @@ function canvasApp()  {
         isInitDraw = false;
         isRedrawUI = true;
         isRedrawSideUI = true;
+        isRedrawScores = true;
+        isRedrawSpeed = true;
+        isRedrawPauseBulb = true;
         isDrawLogicalMeshUI = false;
         isDrawLogicalMeshStage = false;
-        isCreateElement = false; //default - false
+
+        isCreateElement = false; 
         isPlayTheGame = false;
         isIdleScreen = true;
         isGameStart = false;
         isGamePaused = false;
         isGameReset = false;
-        isGameOver = false;
+
         isCollide = false;
         isElementDown = false;
         isElementLeft = false;
         isElementRight = false;
         isElementDrop = false;
         isElementRotate = false;
+
         #pauseStart = undefined;
         timerIdle;
 
@@ -561,24 +553,23 @@ function canvasApp()  {
         }
         //таймер для смены скорости
         timerForChangeSpeed( deltaTimer ) {
-            if ( this.isPlayTheGame && !this.isGameOver && !this.isGamePaused ) {
+            if ( this.isPlayTheGame && !this.isGamePaused ) {
                 let delta;
 
                 if ( this.#pauseStart !== undefined ) {
                     const pauseEnd = new Date().getTime();
                     delta =  Math.round( ( pauseEnd - this.#pauseStart ) / 1000 ) ;
-                    //console.log( pauseEnd );
                 }
 
                 if ( this.#pauseStart === undefined ) {
-                    this.#pauseStart = new Date().getTime(); //старт функции
+                    this.#pauseStart = new Date().getTime(); 
                 }   
-                //console.log( delta, this.#pauseStart );
                 if ( delta === deltaTimer ) {
                     this.#pauseStart = undefined;
-                    //this.#defaultSpeed += 0.125;
                     this.#speed += this.#deltaSpeed;
                     this.isRedrawSideUI = true;
+                    this.isRedrawSpeed = true;
+                    console.log( 'speedChanged', this.#speed );
                 }
             }
         }
@@ -604,7 +595,11 @@ function canvasApp()  {
                 ctxBG.fillText( 'Speed', this.coords.x + 375, this.coords.y + 280 );
                 ctxBG.rect(  this.coords.x + 375, this.coords.y + 290, 40, 20 );
 
+                ctxBG.fillText( 'Pause', this.coords.x + 360, this.coords.y + 335 );
+
                 ctxBG.stroke();
+
+                ctxBG.drawImage( imageBulbPause, 0, 0, 50, 50, this.coords.x + 405, this.coords.y + 321, 20, 20 );
 
                 this.isInitDraw = true;
             }
@@ -612,55 +607,74 @@ function canvasApp()  {
         //рисуем сбоку элементы
         drawSideUI() {
             if ( this.isRedrawSideUI ) {
-                ctxSideUI.clearRect( 0, 0, canvasSideUI.width, canvasSideUI.height ); //TODO изменить размеры стирания поставить под каждый блок
-                { //добавляю в вывод по индексам очки score
-                    let a = ['0','0','0','0','0','0','0'];
-                    let score = String(this.score);
-                    let splitScore = score.split('');
-                    let dLength = a.length - splitScore.length;
+                { //отрисовка очков
+                    if ( this.isRedrawScores ) {
+                        ctxSideUI.clearRect( 0, 0, canvasSideUI.width, 290 ); 
+                        { //добавляю в вывод по индексам очки score
+                            let a = ['0','0','0','0','0','0','0'];
+                            let score = String(this.score);
+                            let splitScore = score.split('');
+                            let dLength = a.length - splitScore.length;
 
-                    if ( splitScore.length < a.length ) {
-                        for ( let i = 0; i < dLength; i++ ) {
-                            splitScore.unshift('0');
+                            if ( splitScore.length < a.length ) {
+                                for ( let i = 0; i < dLength; i++ ) {
+                                    splitScore.unshift('0');
+                                }
+                            }
+                            for ( let i = 0; i < a.length; i++ ) {
+                                a[i] = splitScore[i];
+                            }
+                            ctxSideUI.font = "normal bold 20px Inconsolata";
+                            ctxSideUI.fillText( `${ a[0] }${ a[1] }${ a[2] }${ a[3] }${ a[4] }${ a[5] }${ a[6] }`, this.coords.x + 10, this.coords.y + 168 );
+                        }
+                        { //добавляю в вывод по индексам очки highScore
+                            let b = ['0','0','0','0','0','0','0'];
+                            let highScore = String(this.highScore);
+                            let splitHighScore = highScore.split('');
+                            let dHighLength = b.length - splitHighScore.length;
+
+                            if ( splitHighScore.length < b.length ) {
+                                for ( let i = 0; i < dHighLength; i++ ) {
+                                    splitHighScore.unshift('0');
+                                }
+                            }
+                            for ( let i = 0; i < b.length; i++ ) {
+                                b[i] = splitHighScore[i];
+                            }
+                            
+                            ctxSideUI.fillText( `${ b[0] }${ b[1] }${ b[2] }${ b[3] }${ b[4] }${ b[5] }${ b[6] }`, this.coords.x + 10, this.coords.y + 247 );
                         }
                     }
-                    for ( let i = 0; i < a.length; i++ ) {
-                        a[i] = splitScore[i];
-                        //console.log( a[i] );
-                    }
-                    ctxSideUI.font = "normal bold 20px Inconsolata";
-                    ctxSideUI.fillText( `${ a[0] }${ a[1] }${ a[2] }${ a[3] }${ a[4] }${ a[5] }${ a[6] }`, this.coords.x + 10, this.coords.y + 168 );
                 }
-                { //добавляю в вывод по индексам очки highScore
-                    let b = ['0','0','0','0','0','0','0'];
-                    let highScore = String(this.highScore);
-                    let splitHighScore = highScore.split('');
-                    let dHighLength = b.length - splitHighScore.length;
 
-                    if ( splitHighScore.length < b.length ) {
-                        for ( let i = 0; i < dHighLength; i++ ) {
-                            splitHighScore.unshift('0');
+                { //отрисовка скорости
+                    if ( this.isRedrawSpeed ) {
+                        ctxSideUI.clearRect( 0, 290, canvasSideUI.width, 320 ); 
+    
+                        let s = this.#speed * 8;
+                        if ( s >= 10 ) {
+                            ctxSideUI.fillText( `${ s }`, this.coords.x + 35, this.coords.y + 307 );
+                        }else{
+                            ctxSideUI.fillText( `${ s }`, this.coords.x + 40, this.coords.y + 307 );
                         }
                     }
-                    for ( let i = 0; i < b.length; i++ ) {
-                        b[i] = splitHighScore[i];
-                        //console.log( a[i] );
+                }
+
+                { //отрисовка паузы
+                    if ( this.isRedrawPauseBulb ) {
+                        ctxSideUI.clearRect( 0, 320, canvasSideUI.width, 350 ); 
+                        if ( this.isGamePaused ) {
+                            let posImage = 50;
+
+                            ctxSideUI.drawImage( imageBulbPause, posImage, 0, 50, 50, this.coords.x + 56, this.coords.y + 321, 20, 20 );
+                        }
                     }
-                    
-                    ctxSideUI.fillText( `${ b[0] }${ b[1] }${ b[2] }${ b[3] }${ b[4] }${ b[5] }${ b[6] }`, this.coords.x + 10, this.coords.y + 247 );
                 }
-
-                let s = this.#speed * 8;
-                if ( s >= 10 ) {
-                    ctxSideUI.fillText( `${ s }`, this.coords.x + 35, this.coords.y + 307 );
-                }else{
-                    ctxSideUI.fillText( `${ s }`, this.coords.x + 40, this.coords.y + 307 );
-                }
-                if ( this.isGamePaused ) {
-                    ctxSideUI.fillText( 'Paused', this.coords.x + 15, this.coords.y + 340 );
-                }
-
+                
                 this.isRedrawSideUI = false;
+                this.isRedrawScores = false;
+                this.isRedrawSpeed = false;
+                this.isRedrawPauseBulb = false;
             }
         }
         //рисуем кнопки
@@ -770,6 +784,7 @@ function canvasApp()  {
                         posImage -= 51;
                         ctxUI.drawImage( imageButton, posImage, 0, 50, 50, this.coords.x + 360, this.coords.y + 50, 25, 25 );
                         this.isPressReset = false;
+                        //замедление отжатия кнопки
                         setTimeout( () => {
                             this.isRedrawUI = true;
                         }, 100 );
@@ -783,6 +798,7 @@ function canvasApp()  {
                         posImage -= 51;
                         ctxUI.drawImage( imageButton, posImage, 0, 50, 50, this.coords.x + 360, this.coords.y + 85, 25, 25 );
                         this.isPressPause = false;
+                        //замедление отжатия кнопки
                         setTimeout( () => {
                             this.isRedrawUI = true;
                         }, 100 );
@@ -802,7 +818,6 @@ function canvasApp()  {
         //рисуем логические сетки
         drawLogicalMeshStage() {
             if ( !this.isDrawLogicalMeshStage ) {
-                //ctxStage.clearRect( 0, 0, ctxStage.width, ctxStage.height );
                 //stage
                 for ( let row = 0; row < 20; row++ ) {
                     for ( let col = 0; col < 10; col++ ) {
@@ -853,127 +868,85 @@ function canvasApp()  {
         }
         //проверка на нажатия кнопок мышью
         checkPressButtons() {
-            if ( ctxUI.isPointInPath( this.buttonDrop, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                console.log('Drop');
-                if ( !this.isElementDrop && this.isPlayTheGame ) {
-                    this.isElementDrop = true;
+                if ( ctxUI.isPointInPath( this.buttonDrop, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                    //console.log('Drop');
+                    if ( !this.isElementDrop && this.isPlayTheGame && !this.isGamePaused ) {
+                        this.isElementDrop = true;
+                    }
+                    this.isPressDrop = true;
+                    this.isRedrawUI = true;
                 }
-                this.isPressDrop = true;
-                this.isRedrawUI = true;
-            }
-            if ( ctxUI.isPointInPath( this.buttonLeft, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                console.log('Left');
-                if ( !this.isElementLeft && this.isPlayTheGame ) {
-                    this.isElementLeft = true;
+                if ( ctxUI.isPointInPath( this.buttonLeft, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                   // console.log('Left');
+                    if ( !this.isElementLeft && this.isPlayTheGame && !this.isGamePaused ) {
+                        this.isElementLeft = true;
+                    }
+                    this.isPressLeft = true;
+                    this.isRedrawUI = true;
                 }
-                this.isPressLeft = true;
-                this.isRedrawUI = true;
-            }
-            if ( ctxUI.isPointInPath( this.buttonRight, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                console.log('Right');
-                if ( !this.isElementRight && this.isPlayTheGame ) {
-                    this.isElementRight = true;
+                if ( ctxUI.isPointInPath( this.buttonRight, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                    //console.log('Right');
+                    if ( !this.isElementRight && this.isPlayTheGame && !this.isGamePaused ) {
+                        this.isElementRight = true;
+                    }
+                    this.isPressRight = true;
+                    this.isRedrawUI = true;
                 }
-                this.isPressRight = true;
-                this.isRedrawUI = true;
-            }
-            if ( ctxUI.isPointInPath( this.buttonRotate, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                console.log('Rotate');
-                if ( !this.isElementRotate && this.isPlayTheGame ) {
-                    this.isElementRotate = true;
+                if ( ctxUI.isPointInPath( this.buttonRotate, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                    //console.log('Rotate');
+                    if ( !this.isElementRotate && this.isPlayTheGame && !this.isGamePaused ) {
+                        this.isElementRotate = true;
+                    }
+                    this.isPressRotate = true;
+                    this.isRedrawUI = true;
                 }
-                this.isPressRotate = true;
-                this.isRedrawUI = true;
-            }
-            if ( ctxUI.isPointInPath( this.buttonDown, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                console.log('Down');
-                if ( !this.isElementDown && this.isPlayTheGame ) {
-                    this.isElementDown = true;
+                if ( ctxUI.isPointInPath( this.buttonDown, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                    //console.log('Down');
+                    if ( !this.isElementDown && this.isPlayTheGame && !this.isGamePaused ) {
+                        this.isElementDown = true;
+                    }
+                    this.isPressDown = true;
+                    this.isRedrawUI = true;
                 }
-                this.isPressDown = true;
-                this.isRedrawUI = true;
-            }
-            if ( ctxUI.isPointInPath( this.buttonStart, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                console.log('Start');
-                if ( !this.isGameStart && !this.isPlayTheGame && !this.isGamePaused ) {
-                    ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height);
-                    clearInterval( this.timerIdle );
-                    this.isIdleScreen = false;
-                    this.isGameStart = true;
+                if ( ctxUI.isPointInPath( this.buttonStart, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                    //console.log('Start');
+                    if ( !this.isGameStart && !this.isPlayTheGame && !this.isGamePaused ) {
+                        ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height);
+                        clearInterval( this.timerIdle );
+                        this.isIdleScreen = false;
+                        this.isGameStart = true;
+                    }
+                    this.isPressStart = true;
+                    this.isRedrawUI = true;
                 }
-                this.isPressStart = true;
-                this.isRedrawUI = true;
-            }
-            if ( ctxUI.isPointInPath( this.buttonReset, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                console.log('Reset');
-                if ( !this.isGameReset && this.isPlayTheGame ) {
-                    this.isGameReset = true;
+                if ( ctxUI.isPointInPath( this.buttonReset, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                    //console.log('Reset');
+                    if ( !this.isGameReset && this.isPlayTheGame ) {
+                        this.isGameReset = true;
+                    }
+                    this.isPressReset = true;
+                    this.isRedrawUI = true;
                 }
-                this.isPressReset = true;
-                this.isRedrawUI = true;
-            }
-            if ( ctxUI.isPointInPath( this.buttonPause, mouseClickCoords.x, mouseClickCoords.y ) && !this.isGameOver ) {
-                console.log( 'Pause' );
-                if ( !this.isGamePaused && this.isPlayTheGame ) {
-                    this.isGamePaused = true;
-                    this.isRedrawSideUI = true;
-                }else
-                    if ( this.isGamePaused && this.isPlayTheGame ) {
-                        this.isGamePaused = false;
+                if ( ctxUI.isPointInPath( this.buttonPause, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                    //console.log( 'Pause' );
+                    if ( !this.isGamePaused && this.isPlayTheGame ) {
+                        this.isGamePaused = true;
+                        this.isRedrawPauseBulb = true;
                         this.isRedrawSideUI = true;
-                    }
-                this.isPressPause = true;
-                this.isRedrawUI = true;
-            }
-
+                    }else
+                        if ( this.isGamePaused && this.isPlayTheGame ) {
+                            this.isGamePaused = false;
+                            this.isRedrawPauseBulb = true;
+                            this.isRedrawSideUI = true;
+                        }
+                    this.isPressPause = true;
+                    this.isRedrawUI = true;
+                }
             if ( mouseClickCoords.x !== undefined && mouseClickCoords.y !== undefined ) {
                 mouseClickCoords.x = undefined;
                 mouseClickCoords.y = undefined;
             }
-            /*
-            if ( mouseClickCoords.x !== undefined && mouseClickCoords.y !== undefined ) {
-                mouseClickCoords.x = undefined;
-                mouseClickCoords.y = undefined;
-            }
-            if ( mouseClickSideCoords.x !== undefined && mouseClickSideCoords.y !== undefined ) {
-                mouseClickSideCoords.x = undefined;
-                mouseClickSideCoords.y = undefined;
-            }
-            if ( mouseClickSideLogicCoords.x !== undefined && mouseClickSideLogicCoords.y !== undefined ) {
-                mouseClickSideLogicCoords.x = undefined;
-                mouseClickSideLogicCoords.y = undefined;
-            }
-            if ( mouseClickStageLogicCoords.x !== undefined && mouseClickStageLogicCoords.y !== undefined ) {
-                mouseClickStageLogicCoords.x = undefined;
-                mouseClickStageLogicCoords.y = undefined;
-            }*/
-
-            
         }
-        /*
-        test() {
-            //stage
-            if ( mouseClickStageLogicCoords.x !== undefined ) {
-                for ( let row = 0; row < 20; row++ ) {
-                    for ( let col = 0; col < 10; col++ ) {
-                        if ( ctxStageLogic.isPointInPath( this.arrLogicalCells[row][col].path, mouseClickStageLogicCoords.x, mouseClickStageLogicCoords.y ) ) {
-                            console.log( 'Stage id=', this.arrLogicalCells[row][col].id, 'x=', this.arrLogicalCells[row][col].coords.x, 'y=', this.arrLogicalCells[row][col].coords.y );
-                        }
-                    }
-                }
-            }
-            //NextBox
-            if ( mouseClickSideLogicCoords.x !== undefined ) {
-                for ( let row = 0; row < 8; row++ ) {
-                    for ( let col = 0; col < 8; col++ ) {
-                        if ( ctxSideUILogic.isPointInPath( this.arrLogicalCellsNextBox[row][col].path, mouseClickSideLogicCoords.x, mouseClickSideLogicCoords.y ) ) {
-                            console.log( 'Next id=', this.arrLogicalCellsNextBox[row][col].idNextBox, 'x=', this.arrLogicalCellsNextBox[row][col].coordsScale.x, 'y=', this.arrLogicalCellsNextBox[row][col].coordsScale.y );
-                        }
-                    }
-                }
-            }
-
-        }*/
         //выбираем блок
         getTypeElement() {
                 const typeElements = [ this.typeI, this.typeJ, this.typeL, this.typeO, this.typeS, this.typeT, this.typeZ ];
@@ -995,17 +968,26 @@ function canvasApp()  {
                     this.arrCurrentStageBoxes[i] = new Box( mode ); 
                 }
             }
-            
+
             //'NextBox'
             if ( mode === 'NextBox' ) {
-                startPosition = game.arrLogicalCellsNextBox[3][2];
+                if ( typeElement.typeName === 'typeI' ) {
+                    startPosition = game.arrLogicalCellsNextBox[3][2];
+                }else
+                    if ( typeElement.typeName === 'typeT' ) {
+                        startPosition = game.arrLogicalCellsNextBox[3][3];
+                    }else 
+                        if ( typeElement.typeName === 'typeS' || typeElement.typeName === 'typeO' ) {
+                            startPosition = game.arrLogicalCellsNextBox[3][3];
+                        }else{
+                            startPosition = game.arrLogicalCellsNextBox[2][3];
+                        }
+    
                 for ( let i = 0; i < 4; i++ ) {
                     this.arrCurrentNextBoxes[i] = new Box( mode ); 
                 }
             }
 
-           // console.log( this.arrCurrentNextBoxes );
-            //console.log( this.arrCurrentStageBoxes );
             //присваиваем координаты
             for ( let i = 0; i < 4; i++ ) {
                 let typeX = 0;
@@ -1042,13 +1024,11 @@ function canvasApp()  {
                 this.currentNextElement.boxes = this.arrCurrentNextBoxes;
                 this.currentNextElement.typeName = typeElement.typeName;
                 this.currentNextElement.type = typeElement;
-                //console.log( this.currentNextElement );
             }else
                 if ( mode === 'stageBox' ) {
                     this.currentStageElement.boxes = this.arrCurrentStageBoxes;
                     this.currentStageElement.typeName = typeElement.typeName;
                     this.currentStageElement.type = typeElement;
-                    //console.log( this.currentStageElement );
                 }
         }
         createElements() {
@@ -1305,12 +1285,16 @@ function canvasApp()  {
             }
         }
         moveElement() {
-                ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height );
-                for ( const box of this.arrCurrentStageBoxes ) {
+            ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height );
+            for ( const box of this.arrCurrentStageBoxes ) {
+                if ( !this.isElementDrop ) {
                     box.coords.y += this.#speed;
-                    box.drawBox();
-                }
-           // }
+                }else
+                    if ( this.isElementDrop ) {
+                        box.coords.y += this.dropSpeed;
+                    }
+                box.drawBox();
+            }
         }
         moveDownElement() {
             if ( this.isElementDown ) {
@@ -1343,13 +1327,12 @@ function canvasApp()  {
         }
         moveDropElement() {
             if ( this.isElementDrop ) {
-                const dropSpeed = 3;
-                this.#speed += dropSpeed; 
-                
-                setTimeout( () => {
-                    this.isElementDrop = false;
-                    this.#speed -= dropSpeed;
-                }, 300 );
+                //ограничение по высоте , если выше 6 ряда, то бросок не работает
+                for ( let col = 0; col < 10; col++ ) {
+                    if ( typeof this.arrStageBoxes[6][col] === 'object' ) {
+                        return this.isElementDrop = false;
+                    }
+                }
             }
         }
         //проверка на столкновения
@@ -1391,15 +1374,10 @@ function canvasApp()  {
                     for ( const box of this.arrCurrentStageBoxes ) {
                         box.coords.y -= dY;
                         box.isMoveable = false;
-                        //console.log( box, box.isMoveable );
                     }
                     moveableFlag = true;
 
                     this.isCollide = true;
-                    //this.isElementDrop = false;
-                  //  this.speed = this.prevSpeed;
-                  //  console.log( this.speed, this.prevSpeed );
-                    //console.log(' дно ');
                 }
             }
             
@@ -1408,58 +1386,21 @@ function canvasApp()  {
                 for ( let row = 0; row < 20; row++ ) {
                     for ( let col = 0; col < 10; col++ ) {
                         if ( typeof this.arrStageBoxes[row][col] === 'object' ) {
-                        if ( ( boxCurrent.coords.y + boxCurrent.size.height > this.arrStageBoxes[row][col].coords.y ) && 
-                        boxCurrent.coords.x === this.arrStageBoxes[row][col].coords.x && 
-                        boxCurrent.coords.x + boxCurrent.size.width === this.arrStageBoxes[row][col].coords.x + this.arrStageBoxes[row][col].size.width ) {
+                            if ( ( boxCurrent.coords.y + boxCurrent.size.height > this.arrStageBoxes[row][col].coords.y ) && 
+                                boxCurrent.coords.x === this.arrStageBoxes[row][col].coords.x && 
+                                boxCurrent.coords.x + boxCurrent.size.width === this.arrStageBoxes[row][col].coords.x + this.arrStageBoxes[row][col].size.width ) {
+                                let dY =  ( boxCurrent.coords.y + boxCurrent.size.height ) - this.arrStageBoxes[row][col].coords.y + 1;
 
-                        //console.log('collide');
-                        //console.log( boxCurrent, boxStage );
-                        let dY =  ( boxCurrent.coords.y + boxCurrent.size.height ) - this.arrStageBoxes[row][col].coords.y + 1;
-
-                        for ( const box of this.arrCurrentStageBoxes ) {
-                            box.coords.y -= dY;
-                            box.isMoveable = false;
-                            //console.log( dY, boxStage, boxCurrent );
+                                for ( const box of this.arrCurrentStageBoxes ) {
+                                    box.coords.y -= dY;
+                                    box.isMoveable = false;
+                                }
+                                moveableFlag = true;
+                                this.isCollide = true;
+                            }
                         }
-                        moveableFlag = true;
-                        this.isCollide = true;
-                        // this.isElementDrop = false;
-                       // this.speed = this.prevSpeed;
-                       // console.log( this.speed, this.prevSpeed );
-
-                        //console.log( dY, this.arrCurrentStageBoxes, this.arrStageBoxes );
-                       // break loop;
                     }
                 }
-
-                    }
-                }
-
-                /*
-                for ( const boxStage of this.arrStageBoxes ) {
-                    if ( ( boxCurrent.coords.y + boxCurrent.size.height > boxStage.coords.y ) && 
-                        boxCurrent.coords.x === boxStage.coords.x && 
-                        boxCurrent.coords.x + boxCurrent.size.width === boxStage.coords.x + boxStage.size.width ) {
-
-                        //console.log('collide');
-                        //console.log( boxCurrent, boxStage );
-                        let dY =  ( boxCurrent.coords.y + boxCurrent.size.height ) - boxStage.coords.y + 1;
-
-                        for ( const box of this.arrCurrentStageBoxes ) {
-                            box.coords.y -= dY;
-                            box.isMoveable = false;
-                            //console.log( dY, boxStage, boxCurrent );
-                        }
-                        moveableFlag = true;
-                        this.isCollide = true;
-                        // this.isElementDrop = false;
-                       // this.speed = this.prevSpeed;
-                       // console.log( this.speed, this.prevSpeed );
-
-                        //console.log( dY, this.arrCurrentStageBoxes, this.arrStageBoxes );
-                       // break loop;
-                    }
-                }*/
             }
 
             if ( moveableFlag ) {
@@ -1468,39 +1409,30 @@ function canvasApp()  {
                     box.drawBox();
                 }
 
-                //let swapArr = [];
-                /*
-                swapArr = this.arrStageBoxes.concat( this.arrCurrentStageBoxes );
-                this.arrStageBoxes = swapArr.slice();
-                */
-                //loop2:
                 for ( let row = 0; row < 20; row++ ) {
                     for ( let col = 0; col < 10; col++ ) {
                         for ( const box of this.arrCurrentStageBoxes ) {
-                            if ( this.arrLogicalCells[row][col].coords.x === box.coords.x && 
-                                this.arrLogicalCells[row][col].coords.y === box.coords.y ) {
-    
+                            if ( this.arrLogicalCells[row][col].coords.x === box.coords.x && this.arrLogicalCells[row][col].coords.y === box.coords.y ) {
                                 this.arrStageBoxes[row][col] = box;
                             }
-    
                         }
-        
                     }
                 }
 
                 this.arrCurrentStageBoxes = [];
+                this.isElementDrop = false;
 
                 setTimeout( () => {
                     this.isCreateElement = false;
                 }, 250 );
 
-                console.log( this.arrStageBoxes, this.arrCurrentStageBoxes );
+                //console.log( this.arrStageBoxes, this.arrCurrentStageBoxes );
             }
 
         }
         //отрисовка положенных блоков в стакан
         drawStageBoxes() {
-            if ( /*this.arrStageBoxes.length !== 0 */ this.isPlayTheGame && !this.isGameOver && !this.isGamePaused ) {
+            if ( this.isPlayTheGame /*&& !this.isGameOver */&& !this.isGamePaused ) {
                 
                 ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height );
                 
@@ -1511,12 +1443,6 @@ function canvasApp()  {
                         }
                     }
                 }
-                /*
-                for ( const box of this.arrStageBoxes ) {
-                   // if ( typeof box === 'object' ) {
-                        box.drawBox();
-                    //}
-                }*/
             }
 
             for ( const box of this.arrCurrentStageBoxes ) {
@@ -1528,8 +1454,6 @@ function canvasApp()  {
             for ( const box of this.arrCurrentNextBoxes ) {
                 box.drawBox();
             }
-
-
         }
         //методы окончания игры
         testCollidingTop() {
@@ -1537,53 +1461,23 @@ function canvasApp()  {
                 for ( let col = 0; col < 10; col++ ) {
                     if ( typeof this.arrStageBoxes[row][col] === 'object' ) {
                         if ( this.arrStageBoxes[row][col].coords.y < this.arrLogicalCells[1][0].coords.y ) {
-                            // console.log('collide Top');
                             this.isGamePaused = true;
-                            this.isGameOver = true;
+                            this.isGameReset = true;
+                            ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height )
+                            this.isInitDraw = false;
                         }
                     }
                 }
             }
-            /*
-            for ( const box of this.arrStageBoxes ) {   //проверка пересечения с блоками
-                if ( box.coords.y < this.arrLogicalCells[1][0].coords.y ) {
-                    // console.log('collide Top');
-                    this.isGamePaused = true;
-                    this.isGameOver = true;
-                }
-            }*/
         }
         getGameOver() {
-            if ( this.isPlayTheGame && !this.isGameOver && !this.isGamePaused /*&& this.arrStageBoxes.length !== 0*/ && this.isCollide ) {
-                //console.log( this.arrStageBoxes );
+            if ( this.isPlayTheGame && !this.isGamePaused && this.isCollide ) {
                 for ( let row = 0; row < 20; row++ ) {
                     loop1:
                     for ( let col = 0; col < 10; col++ ) {
                         if ( typeof this.arrStageBoxes[row][col] === 'object' ) {
-                            //if ( this.arrLogicalCells[row][col].coords.x === this.arrStageBoxes[rowStage][colStage].coords.x && 
-                            //    this.arrLogicalCells[row][col].coords.y === this.arrStageBoxes[rowStage][colStage].coords.y  ) {
-
                                 this.arrGameOverBoxes[row][col] = this.arrStageBoxes[row][col];
-                           // }
                         }
-    
-                            
-                        /*
-                        loop2:
-                        for ( const boxStage of this.arrStageBoxes ) {
-                            for (const gameOverBox of this.arrGameOverBoxes) {
-                                if ( gameOverBox === boxStage ) {
-                                    continue loop2;
-                                }
-                            }
-
-                            if ( this.arrLogicalCells[row][col].coords.x === boxStage.coords.x && this.arrLogicalCells[row][col].coords.y === boxStage.coords.y  ) {
-                                this.arrGameOverBoxes[row][col] = boxStage;
-                            }
-                        }
-                        */
-                        //console.log( this.arrGameOverBoxes );
-
                         this.isCollide = false;
                     }
                 }
@@ -1602,14 +1496,15 @@ function canvasApp()  {
                         }
                     }
                 }
-                //console.log( this.arrGameOverBoxes );
                 
                 console.log( rows );
                 console.log( rowsToDelete );
 
                 //удаление полных строк
                 if ( rowsToDelete.length !== 0 ) {
-                    const startIndexToDown = rowsToDelete[0] - 1;
+                    //const startIndexToDown = rowsToDelete[0] - 1;
+                    const startIndexToDown = rowsToDelete[rowsToDelete.length - 1];
+
                     const quantityRowsToDown = rowsToDelete.length;
 
                     console.log( quantityRowsToDown );
@@ -1641,39 +1536,28 @@ function canvasApp()  {
                             this.score += 100;
                             this.highScore += 100;
                             this.isRedrawSideUI = true;
+                            this.isRedrawScores = true;
                             break;
                         case 2:
                             this.score += 300;
                             this.highScore += 300;
                             this.isRedrawSideUI = true;
+                            this.isRedrawScores = true;
                             break;
                         case 3:
                             this.score += 700;
                             this.highScore += 700;
                             this.isRedrawSideUI = true;
+                            this.isRedrawScores = true;
                             break;
                         case 4:
                             this.score += 1500;
                             this.highScore += 1500;
                             this.isRedrawSideUI = true;
+                            this.isRedrawScores = true;
                             break;
                     }
-
-                    //console.log( this.score );
-                    //console.log( this.arrStageBoxes );
                     //console.log( this.arrGameOverBoxes );
-
-                    /*
-                    for ( let col = 0; col < 10; col++ ) {
-                        //TODO сделать удаление из stageBoxes и потом перемещение блоков вниз в массиве и экране, надо переделать на двумерный массив
-                        this.arrStageBoxes.splice( 0, 1 )
-                        console.log( this.arrStageBoxes );
-                        //delete this.arrStageBoxes[0]  delete оставляет пустоту в массиве
-                       // delete this.arrGameOverBoxes[rowToDelete][col];
-                    }
-                    */
-                    //console.log( this.arrGameOverBoxes );
-
                     rowsToDelete = [];
                 }
             }
@@ -1682,14 +1566,11 @@ function canvasApp()  {
         resetGame() {
             if ( this.isGameReset && this.isPlayTheGame ) {
                 this.score = 0;
-                //this.highScore = 0;
                 this.#defaultSpeed = 0.125;
                 this.#speed = this.#defaultSpeed;
 
-                for ( let i = 0; i < 4; i++ ) {
-                    this.arrCurrentNextBoxes[i].clearBox();
-                    this.arrCurrentStageBoxes[i].clearBox();
-                }
+                ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height )
+                ctxNextStage.clearRect( 0, 0, canvasNextStage.width, canvasNextStage.height )
                 this.arrCurrentNextBoxes = [];
                 this.arrCurrentStageBoxes = [];
 
@@ -1722,7 +1603,6 @@ function canvasApp()  {
                 this.isPlayTheGame = false;
                 this.isGamePaused = false;
                 this.isGameStart = true;
-                //this.isPressStart = true;
                 this.isRedrawSideUI = true;
                 this.#pauseStart = undefined;
                 
@@ -1738,8 +1618,6 @@ function canvasApp()  {
         }
 
         drawScreen() {
-            //this.test();
-
             this.drawBackGround();
             this.drawUI();
             this.drawLogicalMeshUi();
@@ -1795,7 +1673,7 @@ function canvasApp()  {
             if ( !this.isDrawCell ) {
                 if ( this.mode === 'cellStage' ) {                
                     ctxStageLogic.strokeStyle = '#ffffffaa';
-                    this.path.rect( this.coords.x + 2, this.coords.y + 2, this.size.width - 2, this.size.height - 2 ); //в таком виде один пиксель между ячейками - ничейный
+                    this.path.rect( this.coords.x + 2, this.coords.y + 2, this.size.width - 2, this.size.height - 2 ); 
                     ctxStageLogic.stroke( this.path );
                     ctxStageLogic.strokeStyle = '#000000';
 
@@ -1806,7 +1684,7 @@ function canvasApp()  {
                         ctxSideUILogic.strokeStyle = '#ffffffaa';
                         ctxSideUILogic.scale(0.5,0.5);
 
-                        this.path.rect( this.coordsScale.x + 2, this.coordsScale.y + 2, this.size.width - 2, this.size.height - 2 ); //в таком виде один пиксель между ячейками - ничейный
+                        this.path.rect( this.coordsScale.x + 2, this.coordsScale.y + 2, this.size.width - 2, this.size.height - 2 );
                         ctxSideUILogic.stroke( this.path );
                         ctxSideUILogic.strokeStyle = '#000000';
                     }
@@ -1845,7 +1723,7 @@ function canvasApp()  {
                 this.center.y =  this.coords.y + 10;
                 this.path = new Path2D();
                 ctxStage.fillStyle = '#2F4F4F';
-                this.path.rect( this.coords.x + 1, this.coords.y + 1, this.size.width - 0, this.size.height - 0 ); //в таком виде один пиксель между ячейками - ничейный ( если -2 )
+                this.path.rect( this.coords.x + 1, this.coords.y + 1, this.size.width - 0, this.size.height - 0 ); 
                 ctxStage.fill( this.path );
                 ctxStage.fillStyle = '#000000';
             }else   
@@ -1855,7 +1733,7 @@ function canvasApp()  {
                     ctxNextStage.setTransform( 1,0,0,1,0,0 );
                     ctxNextStage.fillStyle = '#2F4F4F';
                     ctxNextStage.scale(0.5,0.5);
-                    this.path.rect( this.coordsScale.x + 1, this.coordsScale.y + 1, this.size.width - 0, this.size.height - 0 ); //в таком виде один пиксель между ячейками - ничейный ( если -2 )
+                    this.path.rect( this.coordsScale.x + 1, this.coordsScale.y + 1, this.size.width - 0, this.size.height - 0 ); 
                     ctxNextStage.fill( this.path );
                     ctxNextStage.fillStyle = '#000000';
                 }
@@ -1884,59 +1762,40 @@ function canvasApp()  {
                 mouseClickCoords.x = e.offsetX;
                 mouseClickCoords.y = e.offsetY;
             }
-            /*
-            else
-                if ( e.target.id === 'myCanvas_side_ui' ) {
-                    mouseClickSideCoords.x = e.offsetX;
-                    mouseClickSideCoords.y = e.offsetY;
-                }else
-                    if ( e.target.id === 'myCanvas_side_ui_logical' ) {
-                        mouseClickSideLogicCoords.x = e.offsetX;
-                        mouseClickSideLogicCoords.y = e.offsetY;
-                    }else
-                    if ( e.target.id === 'myCanvas_stage_logical' ) {
-                        mouseClickStageLogicCoords.x = e.offsetX;
-                        mouseClickStageLogicCoords.y = e.offsetY;
-                        
-                    }*/
-            //console.log(/* e.target.id,*/ 'Coords StageLogic=', mouseClickStageLogicCoords.x, mouseClickStageLogicCoords.y )
-           // console.log(/* e.target.id,*/ 'Coords UILogic=', mouseClickSideLogicCoords.x, mouseClickSideLogicCoords.y )
-           // console.log(/* e.target.id,*/ 'Coords Side=', mouseClickSideCoords.x, mouseClickSideCoords.y )
-
     }
     //проверка на нажатия кнопок клавиатурой
     function keyUpHandler( e ) {
         switch ( e.code ) {
             case 'Space': //бросок
-                if ( !game.isElementDrop && game.isPlayTheGame ) {
+                if ( !game.isElementDrop && game.isPlayTheGame && !game.isGamePaused ) {
                     game.isElementDrop = true;
                 }
                 game.isPressDrop = true;
                 game.isRedrawUI = true;
                 break;
             case 'ArrowLeft': //влево
-                if ( !game.isElementLeft && game.isPlayTheGame ) {
+                if ( !game.isElementLeft && game.isPlayTheGame && !game.isGamePaused ) {
                     game.isElementLeft = true;
                 }
                 game.isPressLeft = true;
                 game.isRedrawUI = true;
                 break;
             case 'ArrowRight': //вправо
-                if ( !game.isElementRight && game.isPlayTheGame ) {
+                if ( !game.isElementRight && game.isPlayTheGame && !game.isGamePaused ) {
                     game.isElementRight = true;
                 }
                 game.isPressRight = true;
                 game.isRedrawUI = true;
                 break;
             case 'ArrowUp': //поворот
-                if ( !game.isElementRotate && game.isPlayTheGame ) {
+                if ( !game.isElementRotate && game.isPlayTheGame && !game.isGamePaused ) {
                     game.isElementRotate = true;
                 }
                 game.isPressRotate = true;
                 game.isRedrawUI = true;
                 break;
             case 'ArrowDown': //вниз чуток
-                if ( !game.isElementDown && game.isPlayTheGame ) {
+                if ( !game.isElementDown && game.isPlayTheGame && !game.isGamePaused ) {
                     game.isElementDown = true;
                 }
                 game.isPressDown = true;
@@ -1960,11 +1819,11 @@ function canvasApp()  {
                 game.isRedrawUI = true;
                 break;
             case 'KeyP': //пауза
-                if ( !game.isGamePaused && game.isPlayTheGame && ! game.isGameOver ) {
+                if ( !game.isGamePaused && game.isPlayTheGame /*&& ! game.isGameOver */) {
                     game.isGamePaused = true;
                     game.isRedrawSideUI = true;
                 }else
-                    if ( game.isGamePaused && game.isPlayTheGame && ! game.isGameOver ) {
+                    if ( game.isGamePaused && game.isPlayTheGame /*&& ! game.isGameOver */) {
                         game.isGamePaused = false;
                         game.isRedrawSideUI = true;
                     }
@@ -1975,16 +1834,96 @@ function canvasApp()  {
     }
     //слушатели событий
     canvasUI.addEventListener( 'mouseup', mouseUpHandler );
-    //canvasStageLogical.addEventListener( 'mouseup', mouseUpHandler );
-    //canvasSideUILogical.addEventListener( 'mouseup', mouseUpHandler );
-
     document.addEventListener( 'keyup', keyUpHandler );
     /*
+    const canvasBGWidth = 460;
+    const canvasBGHeight = 580;
+    const canvasUIWidth = 420;
+    const canvasUIHeight = 140;
+    const deltaUI = canvasBGWidth - canvasUIWidth;
+    const canvasStageWidth = 230;
+    const canvasStageHeight = 440;
+    const deltaStage = canvasBGWidth - canvasStageWidth;
+    const canvasSideUIWidth = 110;
+    const canvasSideUIHeight = 440;
+    const deltaSideUI = canvasBGWidth - canvasSideUIWidth;
+    const canvasNextStageWidth = 100;
+    const canvasNextStageHeight = 100;
+    const deltaNextStage = canvasBGWidth - canvasNextStageWidth;
+    const canvasStageLogicalWidth = 230;
+    const canvasStageLogicalHeight = 440;
+    const deltaStageLogical = canvasBGWidth - canvasStageLogicalWidth;
+
+
     window.addEventListener( 'resize', ()=> {
-        if ( window.innerWidth < 460 ) {
-            console.log(window.innerWidth);
-            window.resizeBy( 100, 100 )
+        //game.isInitDraw = false;
+       // game.isRedrawSideUI = false;
+        //console.log( window.innerWidth, window.innerHeight );
+        if ( window.innerWidth < 460 ) { //window.innerWidth
+            canvasBG.width = window.innerWidth - 20;
+            canvasBG.height = canvasBG.width * 1.260869;
+            let scaleX = canvasBG.width / canvasBGWidth;
+            let scaleY = canvasBG.height / canvasBGHeight;
+            //console.log( scaleX );
+            ctxBG.scale( scaleX, scaleY );
+            //console.log(delta );
+            let marginSideUI = canvasBG.width - canvasSideUI.width;
+            let marginSideUILogic = canvasBG.width - canvasSideUILogical.width;
+            let marginNextStage = canvasBG.width - canvasNextStage.width;
+            let topUI = canvasBG.height - canvasUI.height;
+
+            canvasSideUI.style.marginLeft = marginSideUI + 'px';
+            canvasSideUILogical.style.marginLeft = marginSideUILogic + 'px';
+            canvasNextStage.style.marginLeft = marginNextStage + 'px';
+            canvasUI.style.top = topUI + 'px';
+
+            //delta scale
+            canvasUI.width =  canvasBG.width - deltaUI*scaleX;
+            canvasStage.width =  canvasBG.width - deltaStage*scaleX;
+            canvasSideUI.width =  canvasBG.width - deltaSideUI*scaleX;
+            canvasNextStage.width =  canvasBG.width - deltaNextStage*scaleX;
+            canvasStageLogical.width =  canvasBG.width - deltaStageLogical*scaleX;
+
+            canvasUI.height = canvasUI.width * 0.3333; //height / width
+            scaleX = canvasUI.width / canvasUIWidth;
+            scaleY = canvasUI.height / canvasUIHeight;
+            ctxUI.scale( scaleX, scaleY )
+
+
+            canvasStage.height = canvasStage.width * 1.91304; //height / width
+            scaleX = canvasStage.width / canvasStageWidth;
+            scaleY = canvasStage.height / canvasStageHeight;
+            ctxStage.scale( scaleX, scaleY )
+
+            canvasStageLogical.height = canvasStage.width * 1.91304; //height / width
+            scaleX = canvasStageLogical.width / canvasStageLogicalWidth;
+            scaleY = canvasStageLogical.height / canvasStageLogicalHeight;
+            ctxStageLogic.scale( scaleX, scaleY )
+
+
+            canvasSideUI.height = canvasSideUI.width * 4; //height / width
+            scaleX = canvasSideUI.width / canvasSideUIWidth;
+            scaleY = canvasSideUI.height / canvasSideUIHeight;
+            ctxSideUI.scale( scaleX, scaleY )
+
+            canvasNextStage.height = canvasNextStage.width * 1; //height / width
+            scaleX = canvasNextStage.width / canvasNextStageWidth;
+            scaleY = canvasNextStage.height / canvasNextStageHeight;
+            ctxNextStage.scale( scaleX, scaleY )
+
+        // canvasUI.width = //250;
+        // console.log( 'canvas.width', canvas.width );
+        // console.log( 'canvasUI.width', canvasUI.width );
+
+            //game.isInitDraw = false;
+
         }
+        ctxBG.setTransform(1, 0, 0, 1, 0, 0);
+        ctxUI.setTransform(1, 0, 0, 1, 0, 0);
+        game.isInitDraw = false;
+        game.isRedrawSideUI = false;
+        game.isRedrawUI = false;
+        //game.isDrawLogicalMeshStage = false
     } );*/
 
 
@@ -1992,24 +1931,27 @@ function canvasApp()  {
     const imageStage = new Image();
     const imageButton = new Image();
     const imageButtonBig = new Image();
+    const imageBulbPause = new Image();
     imageBG.src = 'images/tetris-bg.png';
     imageStage.src = 'images/tetris-stage.png';
     imageButton.src = 'images/button.png';
     imageButtonBig.src = 'images/button-big.png';
+    imageBulbPause.src = 'images/bulb.png';
     let arrLoadImage = [];
 
     const game = new Game();
-    imageBG.addEventListener( 'load', imageLoad, false ); //game.startUp
+    imageBG.addEventListener( 'load', imageLoad, false ); 
     imageStage.addEventListener( 'load', imageLoad, false );
     imageButton.addEventListener( 'load', imageLoad, false );
     imageButtonBig.addEventListener( 'load', imageLoad, false );
+    imageBulbPause.addEventListener( 'load', imageLoad, false );
 
     function imageLoad() {
         arrLoadImage.push( 'true' );
     }
     //проверяем загрузились или нет картинки через 1 секунду
     setTimeout( ()=> {
-        if ( arrLoadImage.length === 4 ) {
+        if ( arrLoadImage.length === 5 ) {
             game.init();
         }else{
             console.log("images don't loaded");
