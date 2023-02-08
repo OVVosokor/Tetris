@@ -319,7 +319,7 @@ function canvasApp()  {
         };
         
         #defaultSpeed = 0.125;
-        #speed = this.#defaultSpeed; //0.125
+        #speed = this.#defaultSpeed; 
         dropSpeed = 3;
         #deltaTimer = 60;
         #deltaSpeed = 0.125;
@@ -391,7 +391,7 @@ function canvasApp()  {
             }
             {   //Next Box
                 for ( let row = 0; row < 8; row++ ) {
-                    this.arrLogicalCellsNextBox[row] = []// new LogicalCell( 'cellNextBox' );
+                    this.arrLogicalCellsNextBox[row] = [];
                     for ( let col = 0; col < 8; col++ ) {
                         this.arrLogicalCellsNextBox[row][col] = new LogicalCell( 'cellNextBox' );
                     }
@@ -641,7 +641,6 @@ function canvasApp()  {
                             for ( let i = 0; i < b.length; i++ ) {
                                 b[i] = splitHighScore[i];
                             }
-                            
                             ctxSideUI.fillText( `${ b[0] }${ b[1] }${ b[2] }${ b[3] }${ b[4] }${ b[5] }${ b[6] }`, this.coords.x + 10, this.coords.y + 247 );
                         }
                     }
@@ -1043,8 +1042,8 @@ function canvasApp()  {
                     typeStage = this.currentNextElement.type;
                 }
 
-                this.createElement( 'stageBox', typeStage ); //this.typeT
-                this.createElement( 'NextBox', typeNext ); //this.typeJ
+                this.createElement( 'stageBox', typeStage ); 
+                this.createElement( 'NextBox', typeNext ); 
 
                 this.isCreateElement = true;
             }
@@ -1141,11 +1140,11 @@ function canvasApp()  {
                                 arrY.push( element.coords.y );
                             }
                             if ( arrX[0] === arrX[3] ) {
-                                direction.type = 'horizontal'; //vertical
+                                direction.type = 'horizontal'; 
                                 direction.k = 1;
                             }else
                                 if ( arrY[0] === arrY[3] ) {
-                                    direction.type = 'vertical'; //horizontal
+                                    direction.type = 'vertical'; 
                                     direction.k = -1;
                                 }
                         }
@@ -1163,11 +1162,11 @@ function canvasApp()  {
                                         arrY.push( element.coords.y );
                                     }
                                     if ( arrX[1] === arrX[2] ) {
-                                        direction.type = 'horizontal'; //vertical
+                                        direction.type = 'horizontal'; 
                                         direction.k = 1;
                                     }else
                                         if ( arrY[1] === arrY[2] ) {
-                                            direction.type = 'vertical'; //horizontal
+                                            direction.type = 'vertical'; 
                                             direction.k = -1;
                                         }
                                 }
@@ -1272,7 +1271,6 @@ function canvasApp()  {
                         }
                 
                 //console.log( this.currentStageElement.type.rotate );
-                //поворот
 
                 //пауза перед отрисовкой
                 setTimeout( () => {
@@ -1376,7 +1374,6 @@ function canvasApp()  {
                         box.isMoveable = false;
                     }
                     moveableFlag = true;
-
                     this.isCollide = true;
                 }
             }
@@ -1432,7 +1429,7 @@ function canvasApp()  {
         }
         //отрисовка положенных блоков в стакан
         drawStageBoxes() {
-            if ( this.isPlayTheGame /*&& !this.isGameOver */&& !this.isGamePaused ) {
+            if ( this.isPlayTheGame && !this.isGamePaused ) {
                 
                 ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height );
                 
@@ -1497,17 +1494,16 @@ function canvasApp()  {
                     }
                 }
                 
-                console.log( rows );
-                console.log( rowsToDelete );
+                //console.log( rows );
+                //console.log( rowsToDelete );
 
                 //удаление полных строк
                 if ( rowsToDelete.length !== 0 ) {
-                    //const startIndexToDown = rowsToDelete[0] - 1;
                     const startIndexToDown = rowsToDelete[rowsToDelete.length - 1];
 
                     const quantityRowsToDown = rowsToDelete.length;
 
-                    console.log( quantityRowsToDown );
+                    //console.log( quantityRowsToDown );
 
                     for ( const rowToDelete of rowsToDelete ) {
                         for ( let col = 0; col < 10; col++ ) {
@@ -1723,7 +1719,7 @@ function canvasApp()  {
                 this.center.y =  this.coords.y + 10;
                 this.path = new Path2D();
                 ctxStage.fillStyle = '#2F4F4F';
-                this.path.rect( this.coords.x + 1, this.coords.y + 1, this.size.width - 0, this.size.height - 0 ); 
+                this.path.rect( this.coords.x + 1, this.coords.y + 1, this.size.width, this.size.height ); 
                 ctxStage.fill( this.path );
                 ctxStage.fillStyle = '#000000';
             }else   
@@ -1733,14 +1729,14 @@ function canvasApp()  {
                     ctxNextStage.setTransform( 1,0,0,1,0,0 );
                     ctxNextStage.fillStyle = '#2F4F4F';
                     ctxNextStage.scale(0.5,0.5);
-                    this.path.rect( this.coordsScale.x + 1, this.coordsScale.y + 1, this.size.width - 0, this.size.height - 0 ); 
+                    this.path.rect( this.coordsScale.x + 1, this.coordsScale.y + 1, this.size.width, this.size.height ); 
                     ctxNextStage.fill( this.path );
                     ctxNextStage.fillStyle = '#000000';
                 }
         }
         clearBox() {
             if ( this.mode === 'stageBox' ) {
-                ctxStage.clearRect( this.coords.x + 1, this.coords.y + 1, this.size.width - 0, this.size.height - 0 );
+                ctxStage.clearRect( this.coords.x + 1, this.coords.y + 1, this.size.width, this.size.height );
             }else   
                 if ( this.mode === 'NextBox' ) {
                     ctxNextStage.clearRect( this.coordsScale.x - 1, this.coordsScale.y - 1, this.size.width + 3, this.size.height + 3 );
@@ -1819,11 +1815,11 @@ function canvasApp()  {
                 game.isRedrawUI = true;
                 break;
             case 'KeyP': //пауза
-                if ( !game.isGamePaused && game.isPlayTheGame /*&& ! game.isGameOver */) {
+                if ( !game.isGamePaused && game.isPlayTheGame ) {
                     game.isGamePaused = true;
                     game.isRedrawSideUI = true;
                 }else
-                    if ( game.isGamePaused && game.isPlayTheGame /*&& ! game.isGameOver */) {
+                    if ( game.isGamePaused && game.isPlayTheGame ) {
                         game.isGamePaused = false;
                         game.isRedrawSideUI = true;
                     }
@@ -1835,97 +1831,6 @@ function canvasApp()  {
     //слушатели событий
     canvasUI.addEventListener( 'mouseup', mouseUpHandler );
     document.addEventListener( 'keyup', keyUpHandler );
-    /*
-    const canvasBGWidth = 460;
-    const canvasBGHeight = 580;
-    const canvasUIWidth = 420;
-    const canvasUIHeight = 140;
-    const deltaUI = canvasBGWidth - canvasUIWidth;
-    const canvasStageWidth = 230;
-    const canvasStageHeight = 440;
-    const deltaStage = canvasBGWidth - canvasStageWidth;
-    const canvasSideUIWidth = 110;
-    const canvasSideUIHeight = 440;
-    const deltaSideUI = canvasBGWidth - canvasSideUIWidth;
-    const canvasNextStageWidth = 100;
-    const canvasNextStageHeight = 100;
-    const deltaNextStage = canvasBGWidth - canvasNextStageWidth;
-    const canvasStageLogicalWidth = 230;
-    const canvasStageLogicalHeight = 440;
-    const deltaStageLogical = canvasBGWidth - canvasStageLogicalWidth;
-
-
-    window.addEventListener( 'resize', ()=> {
-        //game.isInitDraw = false;
-       // game.isRedrawSideUI = false;
-        //console.log( window.innerWidth, window.innerHeight );
-        if ( window.innerWidth < 460 ) { //window.innerWidth
-            canvasBG.width = window.innerWidth - 20;
-            canvasBG.height = canvasBG.width * 1.260869;
-            let scaleX = canvasBG.width / canvasBGWidth;
-            let scaleY = canvasBG.height / canvasBGHeight;
-            //console.log( scaleX );
-            ctxBG.scale( scaleX, scaleY );
-            //console.log(delta );
-            let marginSideUI = canvasBG.width - canvasSideUI.width;
-            let marginSideUILogic = canvasBG.width - canvasSideUILogical.width;
-            let marginNextStage = canvasBG.width - canvasNextStage.width;
-            let topUI = canvasBG.height - canvasUI.height;
-
-            canvasSideUI.style.marginLeft = marginSideUI + 'px';
-            canvasSideUILogical.style.marginLeft = marginSideUILogic + 'px';
-            canvasNextStage.style.marginLeft = marginNextStage + 'px';
-            canvasUI.style.top = topUI + 'px';
-
-            //delta scale
-            canvasUI.width =  canvasBG.width - deltaUI*scaleX;
-            canvasStage.width =  canvasBG.width - deltaStage*scaleX;
-            canvasSideUI.width =  canvasBG.width - deltaSideUI*scaleX;
-            canvasNextStage.width =  canvasBG.width - deltaNextStage*scaleX;
-            canvasStageLogical.width =  canvasBG.width - deltaStageLogical*scaleX;
-
-            canvasUI.height = canvasUI.width * 0.3333; //height / width
-            scaleX = canvasUI.width / canvasUIWidth;
-            scaleY = canvasUI.height / canvasUIHeight;
-            ctxUI.scale( scaleX, scaleY )
-
-
-            canvasStage.height = canvasStage.width * 1.91304; //height / width
-            scaleX = canvasStage.width / canvasStageWidth;
-            scaleY = canvasStage.height / canvasStageHeight;
-            ctxStage.scale( scaleX, scaleY )
-
-            canvasStageLogical.height = canvasStage.width * 1.91304; //height / width
-            scaleX = canvasStageLogical.width / canvasStageLogicalWidth;
-            scaleY = canvasStageLogical.height / canvasStageLogicalHeight;
-            ctxStageLogic.scale( scaleX, scaleY )
-
-
-            canvasSideUI.height = canvasSideUI.width * 4; //height / width
-            scaleX = canvasSideUI.width / canvasSideUIWidth;
-            scaleY = canvasSideUI.height / canvasSideUIHeight;
-            ctxSideUI.scale( scaleX, scaleY )
-
-            canvasNextStage.height = canvasNextStage.width * 1; //height / width
-            scaleX = canvasNextStage.width / canvasNextStageWidth;
-            scaleY = canvasNextStage.height / canvasNextStageHeight;
-            ctxNextStage.scale( scaleX, scaleY )
-
-        // canvasUI.width = //250;
-        // console.log( 'canvas.width', canvas.width );
-        // console.log( 'canvasUI.width', canvasUI.width );
-
-            //game.isInitDraw = false;
-
-        }
-        ctxBG.setTransform(1, 0, 0, 1, 0, 0);
-        ctxUI.setTransform(1, 0, 0, 1, 0, 0);
-        game.isInitDraw = false;
-        game.isRedrawSideUI = false;
-        game.isRedrawUI = false;
-        //game.isDrawLogicalMeshStage = false
-    } );*/
-
 
     const imageBG = new Image();
     const imageStage = new Image();

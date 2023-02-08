@@ -2,7 +2,6 @@
     display: flex;
     position: relative;
     justify-content: center;
-    /* margin-top: 20px;*/
 }
 
 canvas{
@@ -12,15 +11,11 @@ canvas{
 }
 #myCanvas_stage{
     z-index: 3;
-    /*margin-right: 40px;*/
-    /*top: 10px;*/
     border: none;
 }
 
 #myCanvas_stage_logical{
     z-index: 3;
-    /*margin-right: 40px;*/
-    /*top: 10px;*/
     border: none;
 }
 
