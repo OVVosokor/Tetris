@@ -1401,6 +1401,8 @@ function canvasApp()  {
             }
 
             if ( moveableFlag ) {
+                clickSound.play()
+
                 ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height );
                 for ( const box of this.arrCurrentStageBoxes ) {
                     box.drawBox();
@@ -1600,6 +1602,9 @@ function canvasApp()  {
                 this.isGamePaused = false;
                 this.isGameStart = true;
                 this.isRedrawSideUI = true;
+                this.isRedrawScores = true;
+                this.isRedrawSpeed = true;
+                this.isRedrawPauseBulb = true;
                 this.#pauseStart = undefined;
                 
                 this.startGame(); 
@@ -1608,8 +1613,8 @@ function canvasApp()  {
                     this.isGamePaused = true;
                     this.isRedrawSideUI = true;
                     this.isCreateElement = false;
+                    this.isRedrawPauseBulb = true;
                 }, 4000 );
-
             }
         }
 
@@ -1832,6 +1837,9 @@ function canvasApp()  {
     canvasUI.addEventListener( 'mouseup', mouseUpHandler );
     document.addEventListener( 'keyup', keyUpHandler );
 
+    const clickSound = document.getElementById( 'clicksound' );
+
+
     const imageBG = new Image();
     const imageStage = new Image();
     const imageButton = new Image();
@@ -1850,6 +1858,12 @@ function canvasApp()  {
     imageButton.addEventListener( 'load', imageLoad, false );
     imageButtonBig.addEventListener( 'load', imageLoad, false );
     imageBulbPause.addEventListener( 'load', imageLoad, false );
+
+    clickSound.addEventListener( 'load', soundLoader, false );
+
+    function soundLoader() {
+        clickSound.load();
+    }
 
     function imageLoad() {
         arrLoadImage.push( 'true' );

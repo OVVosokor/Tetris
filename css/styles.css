@@ -3,6 +3,9 @@
     position: relative;
     justify-content: center;
 }
+html {
+    min-width: 480px;
+}
 
 canvas{
     position: absolute;
