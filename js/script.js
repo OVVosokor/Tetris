@@ -1309,23 +1309,49 @@ function canvasApp()  {
                 }, 200 );
             }
         }
+        testCollidingWithBoxes( k ) {
+            for ( const boxCurrent of this.arrCurrentStageBoxes ) {   //проверка пересечения с блоками
+                for ( let row = 0; row < 20; row++ ) {
+                    for ( let col = 0; col < 10; col++ ) {
+                        if ( typeof this.arrStageBoxes[row][col] === 'object' ) {
+                            if ( ( boxCurrent.coords.x < this.arrStageBoxes[row][col].coords.x + this.arrStageBoxes[row][col].size.width ) && 
+                                ( boxCurrent.coords.x + boxCurrent.size.width > this.arrStageBoxes[row][col].coords.x ) && 
+                                boxCurrent.coords.y > this.arrStageBoxes[row][col].coords.y - 20 && 
+                                boxCurrent.coords.y + boxCurrent.size.height < this.arrStageBoxes[row][col].coords.y + this.arrStageBoxes[row][col].size.height + 20 ) {
+                                let dX =  ( boxCurrent.coords.x + boxCurrent.size.width ) - this.arrStageBoxes[row][col].coords.x + 1;
+
+                                for ( const boxCurrent of this.arrCurrentStageBoxes ) {
+                                    boxCurrent.coords.x += dX * k;
+                                    //console.log( dX, this.isElementLeft, this.isElementRight );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         moveLeftElement() {
             if ( this.isElementLeft ) {
                 const offsetLeft = 21;
-                for ( const box of this.arrCurrentStageBoxes ) {
-                    box.coords.x -= offsetLeft;
-                    box.drawBox();
+                for ( const boxCurrent of this.arrCurrentStageBoxes ) {
+                    boxCurrent.coords.x -= offsetLeft;
+                    boxCurrent.drawBox();
                 }
+                this.testCollidingWithBoxes( 1 );
+
                 this.isElementLeft = false;
             }
         }
         moveRightElement() {
-            if ( this.isElementRight) {
+            if ( this.isElementRight ) {
                 const offsetRight = 21;
-                for ( const box of this.arrCurrentStageBoxes ) {
-                    box.coords.x += offsetRight;
-                    box.drawBox();
+                for ( const boxCurrent of this.arrCurrentStageBoxes ) {
+                    boxCurrent.coords.x += offsetRight;
+                    boxCurrent.drawBox();
                 }
+
+                this.testCollidingWithBoxes( -1 );
+
                 this.isElementRight = false;
             }
         }
@@ -1347,23 +1373,23 @@ function canvasApp()  {
             this.testCollidingTop();
         }
         testCollidingLeft() {
-            for ( const box of this.arrCurrentStageBoxes ) {
-                if ( box.coords.x < this.arrLogicalCells[0][0].coords.x ) {
+            for ( const boxCurrent of this.arrCurrentStageBoxes ) { //проверка пересечения со стаканом
+                if ( boxCurrent.coords.x < this.arrLogicalCells[0][0].coords.x ) {
                     ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height );
 
-                    for ( const box of this.arrCurrentStageBoxes ) {
-                        box.coords.x += 21;
+                    for ( const boxCurrent of this.arrCurrentStageBoxes ) {
+                        boxCurrent.coords.x += 21;
                     }
                 }
             }
         }
         testCollidingRight() {
-            for ( const box of this.arrCurrentStageBoxes ) {
-                if ( box.coords.x > this.arrLogicalCells[0][9].coords.x  ) {
+            for ( const boxCurrent of this.arrCurrentStageBoxes ) { //проверка пересечения со стаканом
+                if ( boxCurrent.coords.x > this.arrLogicalCells[0][9].coords.x  ) {
                     ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height );
 
-                    for ( const box of this.arrCurrentStageBoxes ) {
-                        box.coords.x -= 21;
+                    for ( const boxCurrent of this.arrCurrentStageBoxes ) {
+                        boxCurrent.coords.x -= 21;
                     }
                 }
             }
@@ -1384,12 +1410,12 @@ function canvasApp()  {
                 }
             }
             
-            //loop:
             for ( const boxCurrent of this.arrCurrentStageBoxes ) {   //проверка пересечения с блоками
                 for ( let row = 0; row < 20; row++ ) {
                     for ( let col = 0; col < 10; col++ ) {
                         if ( typeof this.arrStageBoxes[row][col] === 'object' ) {
                             if ( ( boxCurrent.coords.y + boxCurrent.size.height > this.arrStageBoxes[row][col].coords.y ) && 
+                                ( boxCurrent.coords.y + boxCurrent.size.height < this.arrStageBoxes[row][col].coords.y + this.arrStageBoxes[row][col].size.height ) && 
                                 boxCurrent.coords.x === this.arrStageBoxes[row][col].coords.x && 
                                 boxCurrent.coords.x + boxCurrent.size.width === this.arrStageBoxes[row][col].coords.x + this.arrStageBoxes[row][col].size.width ) {
                                 let dY =  ( boxCurrent.coords.y + boxCurrent.size.height ) - this.arrStageBoxes[row][col].coords.y + 1;
@@ -1407,7 +1433,7 @@ function canvasApp()  {
             }
 
             if ( moveableFlag ) {
-                clickSound.play()
+                clickSound.play();
 
                 ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height );
                 for ( const box of this.arrCurrentStageBoxes ) {
@@ -1465,7 +1491,8 @@ function canvasApp()  {
             for ( let row = 0; row < 20; row++ ) {
                 for ( let col = 0; col < 10; col++ ) {
                     if ( typeof this.arrStageBoxes[row][col] === 'object' ) {
-                        if ( this.arrStageBoxes[row][col].coords.y < this.arrLogicalCells[1][0].coords.y ) {
+                        //console.log( this.arrStageBoxes, this.arrLogicalCells[2][0].coords.y );
+                        if ( this.arrStageBoxes[row][col].coords.y <= this.arrLogicalCells[2][0].coords.y ) {
                             this.isGamePaused = true;
                             this.isGameReset = true;
                             ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height )
@@ -1816,12 +1843,13 @@ function canvasApp()  {
                 game.isRedrawUI = true;
                 break;
             case 'KeyS': //старт
-                if ( !game.isGameStart && !game.isPlayTheGame && !game.isGamePaused ) {
+                if ( game.isButtonStartIsOn && !game.isGameStart && !game.isPlayTheGame && !game.isGamePaused ) {
                     ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height)
                     clearInterval( game.timerIdle );
                     game.isIdleScreen = false;
                     game.isGameStart = true;
                 }
+                game.isButtonStartIsOn = false;
                 game.isPressStart = true;
                 game.isRedrawUI = true;
                 break;
