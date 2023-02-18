@@ -333,6 +333,7 @@ function canvasApp()  {
         isPressRotate = false;
         isPressDown = false;
         isPressStart = false;
+        isButtonStartIsOn = true;
         isPressReset = false;
         isPressPause = false;
 
@@ -506,7 +507,11 @@ function canvasApp()  {
         //starts Demo load
         startGame() {
             if ( this.isGameStart && !this.isPlayTheGame ) {
+
+                startMusic();
+
                 this.isGameStart = false;
+                
                 let arrElements = [];
                 const delay = 100;
                 const delayInterval = 500;
@@ -908,13 +913,14 @@ function canvasApp()  {
                     this.isRedrawUI = true;
                 }
                 if ( ctxUI.isPointInPath( this.buttonStart, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                    //console.log('Start');
-                    if ( !this.isGameStart && !this.isPlayTheGame && !this.isGamePaused ) {
+                    //console.log('Start', this.isButtonStartIsOn );
+                    if ( this.isButtonStartIsOn && !this.isGameStart && !this.isPlayTheGame && !this.isGamePaused ) {
                         ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height);
                         clearInterval( this.timerIdle );
                         this.isIdleScreen = false;
                         this.isGameStart = true;
                     }
+                    this.isButtonStartIsOn = false;
                     this.isPressStart = true;
                     this.isRedrawUI = true;
                 }
@@ -1489,7 +1495,7 @@ function canvasApp()  {
                         if ( typeof this.arrGameOverBoxes[row][col] === 'object' ) {
                             rows[row] += 1;
                             if ( rows[row] === 10 )  {
-                                console.log( 'full row', row );
+                                //console.log( 'full row', row );
                                 rowsToDelete.push(row);
                             }
                         }
@@ -1866,7 +1872,7 @@ function canvasApp()  {
     }
 
     function imageLoad() {
-        arrLoadImage.push( 'true' );
+        arrLoadImage.push( 'true' ); 
     }
     //проверяем загрузились или нет картинки через 1 секунду
     setTimeout( ()=> {
@@ -1876,5 +1882,73 @@ function canvasApp()  {
             console.log("images don't loaded");
         }
     }, 1000 ); 
-}
 
+    function startSound( bool, frequency ) {
+        let audioContext = new ( this.AudioContext || this.webkitAudioContext )();
+        let notes;
+
+        // Определить базовый звук как комбинацию из трех чистых синусоидальных волн.
+        if ( !frequency ) {
+            notes = [ 293.7, 370.0, 440.0 ]; //Аккорд ре мажор: ре, фа-диез и ля 293.7, 370.0, 440.0
+        }else{
+            notes = [ frequency ]; //Аккорд ре мажор: ре, фа-диез и ля 293.7, 370.0, 440.0
+        }
+        let oscillators = null;
+
+        if ( bool ) {
+            
+            // Создать узлы генератора для каждой ноты, которые мы хотим воспроизводить.
+                oscillators = notes.map( note => {
+                    let o = audioContext.createOscillator();
+                    o.frequency.value = note;
+                    return o;
+                });
+
+            const type = 'square';
+
+            oscillators.forEach( o => o.type = type );
+            
+            // Формировать звук, регулируя его громкость с течением времени.
+            // Начиная с момента 0, быстро увеличить громкость до полной.
+            // Затем, начиная с момента 0.1, медленно уменьшить громкость до 0.
+            let volumeControl = audioContext.createGain();
+            //volumeControl.gain.setTargetAtTime( 1, 0.0, 0.02 );
+            //volumeControl.gain.setTargetAtTime( 0, 0.1, 0.2 );
+            //Мы собираемся посылать звук в стандартное место назначения: динамики пользователя.
+            let speakers = audioContext.destination;
+            // Подключить каждую исходную ноту к регулятору громкости.
+
+            oscillators.forEach( о => о.connect( volumeControl ) );
+            // И подключить выход регулятора громкости к динамикам.
+            volumeControl.connect( speakers );
+            // Теперь начать воспроизведение звуков и позволить ему длиться 1.25 секунды.
+            let startTime = audioContext.currentTime;
+            let stopTime = startTime + 0.5; //1.25
+
+            oscillators.forEach( o => {
+                o.start( startTime );
+                o.stop( stopTime );
+            });
+        
+        }
+    }
+
+    function startMusic() {
+        let arrFreq = [ 523.25, 587.32, 659.26, 698.46 ];
+
+        for ( let i = 0; i < arrFreq.length; i++ ) {
+            let delay = 70 * i * 2*4;
+            setTimeout( () => {        
+                startSound( true, arrFreq[i] );
+            }, delay );
+        }
+
+        for ( let i = arrFreq.length - 1, j = 0; i >= 0; i--, j++ ) {
+            let delay = 2500 + 70 * j * 2*4;
+            setTimeout( () => {        
+                startSound( true, arrFreq[i] );
+            }, delay );
+        }
+    }
+
+}
