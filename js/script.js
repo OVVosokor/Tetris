@@ -319,11 +319,11 @@ function canvasApp()  {
             }
         };
         
-        #defaultSpeed = 0.125;
+        #defaultSpeed = 0.250; //0.125
         #speed = this.#defaultSpeed; 
         dropSpeed = 4;
         #deltaTimer = 60; 
-        #deltaSpeed = 0.125;
+        #deltaSpeed = 0.250; //0.125
 
         score = 0;
         highScore = 0;
@@ -671,6 +671,11 @@ function canvasApp()  {
 
                 ctxBG.fillText( 'Pause', this.coords.x + 360, this.coords.y + 335 );
 
+                ctxBG.font = "10px Sans";
+                ctxBG.fillText( 'OVVosokor', this.coords.x + 405, this.coords.y + 570 );
+
+                ctxBG.font = "20px Sans";
+
                 ctxBG.stroke();
 
                 ctxBG.drawImage( imageBulbPause, 0, 0, 50, 50, this.coords.x + 405, this.coords.y + 321, 20, 20 );
@@ -724,7 +729,7 @@ function canvasApp()  {
                     if ( this.isRedrawSpeed ) {
                         ctxSideUI.clearRect( 0, 290, canvasSideUI.width, 320 ); 
     
-                        let s = this.#speed * 8;
+                        let s = this.#speed * 4; // * 8
                         if ( s >= 10 ) {
                             ctxSideUI.fillText( `${ s }`, this.coords.x + 35, this.coords.y + 307 );
                         }else{
@@ -2086,6 +2091,15 @@ function canvasApp()  {
                     }
                 game.isPressPause = true;
                 game.isRedrawUI = true;
+                break;
+            case 'KeyV': //пауза
+                if ( !game.isPressVolumeSet ) {
+                    game.isPressVolumeSet = true;
+                }else
+                    if ( game.isPressVolumeSet ) {
+                        game.isPressVolumeSet = false;
+                    }
+                    game.isRedrawUI = true;
                 break;
         }
     }
