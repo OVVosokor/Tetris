@@ -57,6 +57,7 @@ function canvasApp()  {
         buttonStart = new Path2D();
         buttonReset = new Path2D();
         buttonPause = new Path2D();
+        buttonVolume = new Path2D();
         arrLogicalCells = [];
         arrLogicalCellsNextBox = [];
         arrCurrentNextBoxes = [];
@@ -336,6 +337,7 @@ function canvasApp()  {
         isButtonStartIsOn = true;
         isPressReset = false;
         isPressPause = false;
+        isPressVolumeSet = true;
 
         isInitDraw = false;
         isRedrawUI = true;
@@ -505,7 +507,7 @@ function canvasApp()  {
             }
         }
         startSound( bool, frequency ) {
-            let audioContext = new ( window.AudioContext )();
+            let audioContext = new window.AudioContext();
             let notes;
     
             // Определить базовый звук как комбинацию из трех чистых синусоидальных волн.
@@ -529,16 +531,16 @@ function canvasApp()  {
     
                 oscillators.forEach( o => o.type = type );
                 
-                // Формировать звук, регулируя его громкость с течением времени.
-                // Начиная с момента 0, быстро увеличить громкость до полной.
-                // Затем, начиная с момента 0.1, медленно уменьшить громкость до 0.
+                // устанавливаем громкость
                 let volumeControl = audioContext.createGain();
-                //volumeControl.gain.setTargetAtTime( 1, 0.0, 0.02 );
-                //volumeControl.gain.setTargetAtTime( 0, 0.1, 0.2 );
+                if ( this.isPressVolumeSet ) {
+                    volumeControl.gain.value = 0.01;
+                }else{
+                    volumeControl.gain.value = 0;
+                }
                 //Мы собираемся посылать звук в стандартное место назначения: динамики пользователя.
                 let speakers = audioContext.destination;
                 // Подключить каждую исходную ноту к регулятору громкости.
-    
                 oscillators.forEach( о => о.connect( volumeControl ) );
                 // И подключить выход регулятора громкости к динамикам.
                 volumeControl.connect( speakers );
@@ -780,7 +782,6 @@ function canvasApp()  {
                     if ( this.isPressLeft ) {
                         posImage -= 51;
                         ctxUI.clearRect( 169, 0, canvasUI.width, canvasUI.height )
-
                         ctxUI.drawImage( imageButton, posImage, 0, 50, 50, this.coords.x + 190, this.coords.y + 50, 50, 50 );
                         this.isPressLeft = false;
                         //замедление отжатия кнопки
@@ -802,7 +803,6 @@ function canvasApp()  {
                             this.isRedrawUI = true;
                         }, 100 );
                         posImage = 50;
-
                     }
                 //Rotate
                 if ( !this.isPressRotate ) {
@@ -817,7 +817,6 @@ function canvasApp()  {
                             this.isRedrawUI = true;
                         }, 100 );
                         posImage = 50;
-
                     }
                 //Down
                 if ( !this.isPressDown ) {
@@ -875,6 +874,18 @@ function canvasApp()  {
                         }, 100 );
                         posImage = 50;
                     }
+                {
+                    //set Volume
+                    let posImage = 50;
+                    if ( !this.isPressVolumeSet ) {
+                        ctxUI.drawImage( imageButton, posImage, 0, 50, 50, this.coords.x + 363, this.coords.y + 118, 20, 20 );
+                    }else
+                        if ( this.isPressVolumeSet ) {
+                            posImage -= 51;
+                            ctxUI.drawImage( imageButton, posImage, 0, 50, 50, this.coords.x + 363, this.coords.y + 118, 20, 20 );
+                        }
+                }
+    
                 ctxUI.strokeText( 'Reset', this.coords.x + 362, this.coords.y + 47 );
                 ctxUI.strokeText( 'Left', this.coords.x + 173, this.coords.y + 75 );
                 ctxUI.strokeText( 'Right', this.coords.x + 320, this.coords.y + 75 );
@@ -882,6 +893,7 @@ function canvasApp()  {
                 ctxUI.strokeText( 'Down', this.coords.x + 242, this.coords.y + 86 );
                 ctxUI.strokeText( 'Start', this.coords.x + 362, this.coords.y + 10 );
                 ctxUI.strokeText( 'Pause', this.coords.x + 362, this.coords.y + 84 );
+                ctxUI.strokeText( 'Volume', this.coords.x + 362, this.coords.y + 117 );
 
                 this.isRedrawUI = false;
             }
@@ -932,90 +944,104 @@ function canvasApp()  {
                 //Pause
                 this.buttonPause.arc( this.coords.x + 372, this.coords.y + 97, 10, 0, 2 * Math.PI );
                 ctxUI.fill( this.buttonPause );
-                
+                //Volume
+                this.buttonVolume.arc( this.coords.x + 373, this.coords.y + 128, 8, 0, 2 * Math.PI );
+                ctxUI.fill( this.buttonVolume );
 
                 this.isDrawLogicalMesh = true;
             }
         }
         //проверка на нажатия кнопок мышью
         checkPressButtons() {
-                if ( ctxUI.isPointInPath( this.buttonDrop, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                    //console.log('Drop');
-                    if ( !this.isElementDrop && this.isPlayTheGame && !this.isGamePaused ) {
-                        this.isElementDrop = true;
-                    }
-                    this.isPressDrop = true;
-                    this.isRedrawUI = true;
+            if ( ctxUI.isPointInPath( this.buttonDrop, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                //console.log('Drop');
+                if ( !this.isElementDrop && this.isPlayTheGame && !this.isGamePaused ) {
+                    this.isElementDrop = true;
                 }
-                if ( ctxUI.isPointInPath( this.buttonLeft, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                   // console.log('Left');
-                    if ( !this.isElementLeft && this.isPlayTheGame && !this.isGamePaused ) {
-                        this.isElementLeft = true;
-                    }
-                    this.isPressLeft = true;
-                    this.isRedrawUI = true;
+                this.isPressDrop = true;
+                this.isRedrawUI = true;
+            }
+            if ( ctxUI.isPointInPath( this.buttonLeft, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                // console.log('Left');
+                if ( !this.isElementLeft && this.isPlayTheGame && !this.isGamePaused ) {
+                    this.isElementLeft = true;
                 }
-                if ( ctxUI.isPointInPath( this.buttonRight, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                    //console.log('Right');
-                    if ( !this.isElementRight && this.isPlayTheGame && !this.isGamePaused ) {
-                        this.isElementRight = true;
-                    }
-                    this.isPressRight = true;
-                    this.isRedrawUI = true;
+                this.isPressLeft = true;
+                this.isRedrawUI = true;
+            }
+            if ( ctxUI.isPointInPath( this.buttonRight, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                //console.log('Right');
+                if ( !this.isElementRight && this.isPlayTheGame && !this.isGamePaused ) {
+                    this.isElementRight = true;
                 }
-                if ( ctxUI.isPointInPath( this.buttonRotate, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                    //console.log('Rotate');
-                    if ( !this.isElementRotate && this.isPlayTheGame && !this.isGamePaused ) {
-                        this.isElementRotate = true;
-                    }
-                    this.isPressRotate = true;
-                    this.isRedrawUI = true;
+                this.isPressRight = true;
+                this.isRedrawUI = true;
+            }
+            if ( ctxUI.isPointInPath( this.buttonRotate, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                //console.log('Rotate');
+                if ( !this.isElementRotate && this.isPlayTheGame && !this.isGamePaused ) {
+                    this.isElementRotate = true;
                 }
-                if ( ctxUI.isPointInPath( this.buttonDown, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                    //console.log('Down');
-                    if ( !this.isElementDown && this.isPlayTheGame && !this.isGamePaused ) {
-                        this.isElementDown = true;
-                    }
-                    this.isPressDown = true;
-                    this.isRedrawUI = true;
+                this.isPressRotate = true;
+                this.isRedrawUI = true;
+            }
+            if ( ctxUI.isPointInPath( this.buttonDown, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                //console.log('Down');
+                if ( !this.isElementDown && this.isPlayTheGame && !this.isGamePaused ) {
+                    this.isElementDown = true;
                 }
-                if ( ctxUI.isPointInPath( this.buttonStart, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                    //console.log('Start', this.isButtonStartIsOn );
-                    if ( this.isButtonStartIsOn && !this.isGameStart && !this.isPlayTheGame && !this.isGamePaused ) {
-                        ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height);
-                        clearInterval( this.timerIdle );
-                        this.isIdleScreen = false;
-                        this.isGameStart = true;
-                    }
-                    this.isButtonStartIsOn = false;
-                    this.isPressStart = true;
-                    this.isRedrawUI = true;
+                this.isPressDown = true;
+                this.isRedrawUI = true;
+            }
+            if ( ctxUI.isPointInPath( this.buttonStart, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                //console.log('Start', this.isButtonStartIsOn );
+                if ( this.isButtonStartIsOn && !this.isGameStart && !this.isPlayTheGame && !this.isGamePaused ) {
+                    ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height);
+                    clearInterval( this.timerIdle );
+                    this.isIdleScreen = false;
+                    this.isGameStart = true;
                 }
-                if ( ctxUI.isPointInPath( this.buttonReset, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                    //console.log('Reset');
-                    if ( !this.isGameReset && this.isPlayTheGame ) {
-                        this.isGameReset = true;
-                    }
-                    this.isPressReset = true;
-                    this.isRedrawUI = true;
+                this.isButtonStartIsOn = false;
+                this.isPressStart = true;
+                this.isRedrawUI = true;
+            }
+            if ( ctxUI.isPointInPath( this.buttonReset, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                //console.log('Reset');
+                if ( !this.isGameReset && this.isPlayTheGame ) {
+                    this.isGameReset = true;
                 }
-                if ( ctxUI.isPointInPath( this.buttonPause, mouseClickCoords.x, mouseClickCoords.y ) ) {
-                    //console.log( 'Pause' );
-                    if ( !this.isGamePaused && this.isPlayTheGame ) {
-                        this.pauseStart = undefined;
+                this.isPressReset = true;
+                this.isRedrawUI = true;
+            }
+            if ( ctxUI.isPointInPath( this.buttonPause, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                //console.log( 'Pause' );
+                if ( !this.isGamePaused && this.isPlayTheGame ) {
+                    this.pauseStart = undefined;
 
-                        this.isGamePaused = true;
+                    this.isGamePaused = true;
+                    this.isRedrawPauseBulb = true;
+                    this.isRedrawSideUI = true;
+                }else
+                    if ( this.isGamePaused && this.isPlayTheGame ) {
+                        this.isGamePaused = false;
                         this.isRedrawPauseBulb = true;
                         this.isRedrawSideUI = true;
-                    }else
-                        if ( this.isGamePaused && this.isPlayTheGame ) {
-                            this.isGamePaused = false;
-                            this.isRedrawPauseBulb = true;
-                            this.isRedrawSideUI = true;
-                        }
-                    this.isPressPause = true;
-                    this.isRedrawUI = true;
-                }
+                    }
+                this.isPressPause = true;
+                this.isRedrawUI = true;
+            }
+            if ( ctxUI.isPointInPath( this.buttonVolume, mouseClickCoords.x, mouseClickCoords.y ) ) {
+                //console.log( 'Volume' );
+                if ( !this.isPressVolumeSet ) {
+                    this.isPressVolumeSet = true;
+                }else
+                    if ( this.isPressVolumeSet ) {
+                        this.isPressVolumeSet = false;
+                    }
+                this.isRedrawUI = true;
+            }
+
+
             if ( mouseClickCoords.x !== undefined && mouseClickCoords.y !== undefined ) {
                 mouseClickCoords.x = undefined;
                 mouseClickCoords.y = undefined;
