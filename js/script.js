@@ -1,4 +1,4 @@
-window.addEventListener("load", eventWindowLoaded, false);
+window.addEventListener( "load", eventWindowLoaded, false );
 
 function eventWindowLoaded () {
     canvasApp();
@@ -320,8 +320,8 @@ function canvasApp()  {
         
         #defaultSpeed = 0.125;
         #speed = this.#defaultSpeed; 
-        dropSpeed = 3;
-        #deltaTimer = 60;
+        dropSpeed = 4;
+        #deltaTimer = 60; 
         #deltaSpeed = 0.125;
 
         score = 0;
@@ -360,7 +360,7 @@ function canvasApp()  {
         isElementDrop = false;
         isElementRotate = false;
 
-        #pauseStart = undefined;
+        pauseStart = undefined;
         timerIdle;
 
         //startUp
@@ -504,12 +504,78 @@ function canvasApp()  {
                 this.isIdleScreen = false;
             }
         }
+        startSound( bool, frequency ) {
+            let audioContext = new ( window.AudioContext )();
+            let notes;
+    
+            // Определить базовый звук как комбинацию из трех чистых синусоидальных волн.
+            if ( !frequency ) {
+                notes = [ 293.7, 370.0, 440.0 ]; //Аккорд ре мажор: ре, фа-диез и ля 293.7, 370.0, 440.0
+            }else{
+                notes = [ frequency ]; 
+            }
+            let oscillators = null;
+    
+            if ( bool ) {
+                
+                // Создать узлы генератора для каждой ноты, которые мы хотим воспроизводить.
+                    oscillators = notes.map( note => {
+                        let o = audioContext.createOscillator();
+                        o.frequency.value = note;
+                        return o;
+                    });
+    
+                const type = 'square';
+    
+                oscillators.forEach( o => o.type = type );
+                
+                // Формировать звук, регулируя его громкость с течением времени.
+                // Начиная с момента 0, быстро увеличить громкость до полной.
+                // Затем, начиная с момента 0.1, медленно уменьшить громкость до 0.
+                let volumeControl = audioContext.createGain();
+                //volumeControl.gain.setTargetAtTime( 1, 0.0, 0.02 );
+                //volumeControl.gain.setTargetAtTime( 0, 0.1, 0.2 );
+                //Мы собираемся посылать звук в стандартное место назначения: динамики пользователя.
+                let speakers = audioContext.destination;
+                // Подключить каждую исходную ноту к регулятору громкости.
+    
+                oscillators.forEach( о => о.connect( volumeControl ) );
+                // И подключить выход регулятора громкости к динамикам.
+                volumeControl.connect( speakers );
+                // Теперь начать воспроизведение звуков и позволить ему длиться 1.25 секунды.
+                let startTime = audioContext.currentTime;
+                let stopTime = startTime + 0.5; //1.25
+    
+                oscillators.forEach( o => {
+                    o.start( startTime );
+                    o.stop( stopTime );
+                });
+            
+            }
+        }
+        startMusic() {
+            let arrFreq = [ 523.25, 587.32, 659.26, 698.46 ];
+    
+            for ( let i = 0; i < arrFreq.length; i++ ) {
+                let delay = 70 * i * 2*4;
+                setTimeout( () => {        
+                    this.startSound( true, arrFreq[i] );
+                }, delay );
+            }
+    
+            for ( let i = arrFreq.length - 1, j = 0; i >= 0; i--, j++ ) {
+                let delay = 2500 + 70 * j * 2*4;
+                setTimeout( () => {        
+                    this.startSound( true, arrFreq[i] );
+                }, delay );
+            }
+        }
         //starts Demo load
         startGame() {
             if ( this.isGameStart && !this.isPlayTheGame ) {
 
-                startMusic();
-
+                //startMusic();
+                this.startMusic();
                 this.isGameStart = false;
                 
                 let arrElements = [];
@@ -561,16 +627,17 @@ function canvasApp()  {
             if ( this.isPlayTheGame && !this.isGamePaused ) {
                 let delta;
 
-                if ( this.#pauseStart !== undefined ) {
+                if ( this.pauseStart !== undefined ) {
                     const pauseEnd = new Date().getTime();
-                    delta =  Math.round( ( pauseEnd - this.#pauseStart ) / 1000 ) ;
+                    delta =  Math.round( ( pauseEnd - this.pauseStart ) / 1000 ) ;
+                    //console.log( delta );
                 }
 
-                if ( this.#pauseStart === undefined ) {
-                    this.#pauseStart = new Date().getTime(); 
+                if ( this.pauseStart === undefined ) {
+                    this.pauseStart = new Date().getTime(); 
                 }   
                 if ( delta === deltaTimer ) {
-                    this.#pauseStart = undefined;
+                    this.pauseStart = undefined;
                     this.#speed += this.#deltaSpeed;
                     this.isRedrawSideUI = true;
                     this.isRedrawSpeed = true;
@@ -935,6 +1002,8 @@ function canvasApp()  {
                 if ( ctxUI.isPointInPath( this.buttonPause, mouseClickCoords.x, mouseClickCoords.y ) ) {
                     //console.log( 'Pause' );
                     if ( !this.isGamePaused && this.isPlayTheGame ) {
+                        this.pauseStart = undefined;
+
                         this.isGamePaused = true;
                         this.isRedrawPauseBulb = true;
                         this.isRedrawSideUI = true;
@@ -1035,6 +1104,54 @@ function canvasApp()  {
                     this.currentStageElement.typeName = typeElement.typeName;
                     this.currentStageElement.type = typeElement;
                 }
+
+                /*
+            if ( mode === 'stageBox' ) {
+                this.currentStageElement.border.width = 65;
+                this.currentStageElement.border.height = 65;
+
+            //создаем границы для проверки возможности поворота
+            if ( typeElement.typeName === 'typeS' || typeElement.typeName === 'typeZ' ) {
+                this.currentStageElement.border.x = this.arrCurrentStageBoxes[0].coords.x-21;
+                this.currentStageElement.border.y = this.arrCurrentStageBoxes[0].coords.y-21;
+                //console.log( this.currentStageElement, this.arrCurrentStageBoxes[0].coords.x );
+
+            }else
+                if ( typeElement.typeName === 'typeT' ) {
+                    this.currentStageElement.border.x = this.arrCurrentStageBoxes[0].coords.x;
+                    this.currentStageElement.border.y = this.arrCurrentStageBoxes[0].coords.y-21;
+                    //console.log( this.currentStageElement, this.arrCurrentStageBoxes[0].coords.x );
+                }else
+                    if ( typeElement.typeName === 'typeJ' ) {
+                        this.currentStageElement.border.x = this.arrCurrentStageBoxes[0].coords.x-21;
+                        this.currentStageElement.border.y = this.arrCurrentStageBoxes[0].coords.y;
+                       // console.log( this.currentStageElement, this.arrCurrentStageBoxes[0].coords.x );
+                    }else
+                        if ( typeElement.typeName === 'typeO' ) {
+                            this.currentStageElement.border.x = this.arrCurrentStageBoxes[0].coords.x;
+                            this.currentStageElement.border.y = this.arrCurrentStageBoxes[0].coords.y;
+                            this.currentStageElement.border.width -= 21;
+                            this.currentStageElement.border.height -= 21;
+
+                            //console.log( this.currentStageElement, this.arrCurrentStageBoxes[0].coords.x );
+                        }else
+                            if ( typeElement.typeName === 'typeI' ) {
+                                this.currentStageElement.border.x = this.arrCurrentStageBoxes[0].coords.x;
+                                this.currentStageElement.border.y = this.arrCurrentStageBoxes[0].coords.y-42;
+                                this.currentStageElement.border.width += 21;
+                                this.currentStageElement.border.height += 21;
+    
+                                //console.log( this.currentStageElement, this.arrCurrentStageBoxes[0].coords.x );
+                            }else
+                                if ( typeElement.typeName === 'typeL' ) {
+                                    this.currentStageElement.border.x = this.arrCurrentStageBoxes[0].coords.x-21;
+                                    this.currentStageElement.border.y = this.arrCurrentStageBoxes[0].coords.y+0;
+                                // this.currentStageElement.border.width += 21;
+                                    //this.currentStageElement.border.height += 21;
+        
+                                    //console.log( this.currentStageElement, this.arrCurrentStageBoxes[0].coords.x );
+                                }
+            }*/
         }
         createElements() {
             if ( this.isPlayTheGame && !this.isCreateElement && !this.isGameReset ) {
@@ -1067,16 +1184,81 @@ function canvasApp()  {
                 }
                 if ( moveableFlag ) {
                     this.rotateElement();
-                    this.moveElement();
                     this.moveDownElement();
                     this.moveLeftElement();
                     this.moveRightElement();
+                    this.moveElement();
+
                     this.moveDropElement();
                     this.testCollidings();
                 }
             }
         }
-        rotate( rotate, direction ) {
+        isCanRotate( direction ) {
+            //клонируем
+            const copyCurrentStageElement = _.cloneDeep( this.currentStageElement );
+            const copyDirection = Object.assign( {}, direction );
+            let copyArrCurrentStageBoxes = [];
+
+            for ( const boxCurrent of this.arrCurrentStageBoxes ) {
+                const copyBox = _.cloneDeep( boxCurrent );
+                copyArrCurrentStageBoxes.push( copyBox );
+            }
+
+            if ( copyDirection.k === undefined ) {
+                copyDirection.k = 1;
+                
+                switch ( copyDirection.type ) {
+                    case 'bottom':
+                        this.rotate( copyArrCurrentStageBoxes, copyCurrentStageElement.type.rotate.bottom, copyDirection );
+                        //console.log( copyCurrentStageElement.type.rotate.bottom );
+                        break;
+                    case 'left':
+                        this.rotate( copyArrCurrentStageBoxes, copyCurrentStageElement.type.rotate.left, copyDirection );
+                        //console.log( copyCurrentStageElement.type.rotate.left );
+                        break;
+                    case 'top':
+                        this.rotate( copyArrCurrentStageBoxes, copyCurrentStageElement.type.rotate.top, copyDirection );
+                        //console.log( copyCurrentStageElement.type.rotate.top );
+                        break;
+                    case 'right':
+                        this.rotate( copyArrCurrentStageBoxes, copyCurrentStageElement.type.rotate.right, copyDirection );
+                        //console.log( copyCurrentStageElement.type.rotate.right );
+                        break;
+                }
+            }else
+                if ( copyDirection.k !== undefined ) {
+                    this.rotate( copyArrCurrentStageBoxes, copyCurrentStageElement.type.rotate, copyDirection );
+                }
+
+                //проверка на пересечение
+                let test = [];
+                for (const boxCurrent of copyArrCurrentStageBoxes ) {
+                    for ( let row = 0; row < 20; row++ ) {
+                        for ( let col = 0; col < 10; col++ ) {
+                            if ( typeof this.arrStageBoxes[row][col] === 'object' ) {
+                                if ( boxCurrent.coords.x === this.arrStageBoxes[row][col].coords.x && boxCurrent.coords.x + boxCurrent.size.width === this.arrStageBoxes[row][col].coords.x + this.arrStageBoxes[row][col].size.width &&
+                                    boxCurrent.coords.y >= this.arrStageBoxes[row][col].coords.y ) {
+                                    //console.log('!collide!');
+                                    //console.log( boxCurrent );
+                                    console.log('!collide!');
+                                    test.push( 'false' );
+                                }
+                            }
+                        }
+                    }
+                }
+                //console.log( test );
+
+                if ( test.includes( 'false' ) ) {
+                    //console.log( 'false!!' );
+                    return false;
+                }else{
+                    //console.log( 'true!!' );
+                    return true;
+                }
+        }
+        rotate( arrToRotate, rotate, direction ) {
             for ( let i = 0; i < 4; i++ ) {
                 let typeRotateX;
                 let typeRotateY;
@@ -1099,14 +1281,16 @@ function canvasApp()  {
                         typeRotateY = rotate.dy4 * direction.k;
                         break;
                 }
-                this.arrCurrentStageBoxes[i].coords.x = this.arrCurrentStageBoxes[i].coords.x + typeRotateX;
-                this.arrCurrentStageBoxes[i].coords.y = this.arrCurrentStageBoxes[i].coords.y + typeRotateY;
+                //this.arrCurrentStageBoxes[i].coords.x = this.arrCurrentStageBoxes[i].coords.x + typeRotateX;
+                //this.arrCurrentStageBoxes[i].coords.y = this.arrCurrentStageBoxes[i].coords.y + typeRotateY;
+                arrToRotate[i].coords.x = arrToRotate[i].coords.x + typeRotateX;
+                arrToRotate[i].coords.y = arrToRotate[i].coords.y + typeRotateY;
+
             }
 
         }
         rotateElement() {
-            if ( this.isElementRotate ) {
-                const delay = 100;
+            if ( this.isElementRotate &&  !this.isElementDrop ) {
                 
                 for ( const element of this.arrCurrentStageBoxes ) {
                     element.clearBox();
@@ -1249,42 +1433,37 @@ function canvasApp()  {
                                             }
                                         }
 
-
+                //this.isCanRotate( direction );
+                if ( this.isCanRotate( direction ) ) {
+                    //меняем координаты
                     if ( direction.k === undefined ) {
                         direction.k = 1;
+                        
                         switch ( direction.type ) {
                             case 'bottom':
-                                this.rotate( this.currentStageElement.type.rotate.bottom, direction );
+                                this.rotate( this.arrCurrentStageBoxes, this.currentStageElement.type.rotate.bottom, direction );
                                 //console.log( this.currentStageElement.type.rotate.bottom );
                                 break;
                             case 'left':
-                                this.rotate( this.currentStageElement.type.rotate.left, direction );
+                                this.rotate( this.arrCurrentStageBoxes, this.currentStageElement.type.rotate.left, direction );
                                 //console.log( this.currentStageElement.type.rotate.left );
                                 break;
                             case 'top':
-                                this.rotate( this.currentStageElement.type.rotate.top, direction );
+                                this.rotate( this.arrCurrentStageBoxes, this.currentStageElement.type.rotate.top, direction );
                                 //console.log( this.currentStageElement.type.rotate.top );
                                 break;
                             case 'right':
-                                this.rotate( this.currentStageElement.type.rotate.right, direction );
+                                this.rotate( this.arrCurrentStageBoxes, this.currentStageElement.type.rotate.right, direction );
                                 //console.log( this.currentStageElement.type.rotate.right );
                                 break;
-    
                         }
                     }else
                         if ( direction.k !== undefined ) {
-                            this.rotate( this.currentStageElement.type.rotate, direction );
+                            this.rotate( this.arrCurrentStageBoxes, this.currentStageElement.type.rotate, direction );
                         }
-                
-                //console.log( this.currentStageElement.type.rotate );
+                }
+                //console.log( this.currentStageElement );
 
-                //пауза перед отрисовкой
-                setTimeout( () => {
-                    for ( const element of this.arrCurrentStageBoxes ) {
-                        element.drawBox();
-                    };
-                    }, delay
-                );
                 this.isElementRotate = false;
             }
         }
@@ -1299,6 +1478,9 @@ function canvasApp()  {
                     }
                 box.drawBox();
             }
+
+            
+            //this.currentStageElement.border.y += this.#speed;
         }
         moveDownElement() {
             if ( this.isElementDown ) {
@@ -1306,7 +1488,7 @@ function canvasApp()  {
                 setTimeout( () => {
                     this.isElementDown = false;
                     this.#speed -= 0.125;
-                }, 200 );
+                }, 400 );
             }
         }
         testCollidingWithBoxes( k ) {
@@ -1338,6 +1520,7 @@ function canvasApp()  {
                     boxCurrent.drawBox();
                 }
                 this.testCollidingWithBoxes( 1 );
+               // this.currentStageElement.border.x -= offsetLeft;
 
                 this.isElementLeft = false;
             }
@@ -1351,6 +1534,7 @@ function canvasApp()  {
                 }
 
                 this.testCollidingWithBoxes( -1 );
+               // this.currentStageElement.border.x += offsetRight;
 
                 this.isElementRight = false;
             }
@@ -1474,6 +1658,12 @@ function canvasApp()  {
                         }
                     }
                 }
+                
+                //draw Border
+                //ctxStage.rect( this.currentStageElement.border.x, this.currentStageElement.border.y, this.currentStageElement.border.width, this.currentStageElement.border.height )
+                //ctxStage.stroke()
+                //console.log( this.currentStageElement );
+    
             }
 
             for ( const box of this.arrCurrentStageBoxes ) {
@@ -1485,6 +1675,10 @@ function canvasApp()  {
             for ( const box of this.arrCurrentNextBoxes ) {
                 box.drawBox();
             }
+            /*
+            //draw Border
+            ctxStage.rect( this.currentStageElement.border.x, this.currentStageElement.border.y, this.currentStageElement.border.width, this.currentStageElement.border.height )
+            ctxStage.stroke()*/
         }
         //методы окончания игры
         testCollidingTop() {
@@ -1638,7 +1832,7 @@ function canvasApp()  {
                 this.isRedrawScores = true;
                 this.isRedrawSpeed = true;
                 this.isRedrawPauseBulb = true;
-                this.#pauseStart = undefined;
+                this.pauseStart = undefined;
                 
                 this.startGame(); 
                 
@@ -1790,7 +1984,6 @@ function canvasApp()  {
     }
 
     //обработчики событий
-
     function mouseUpHandler( e ) {
         if ( e.target.id === 'myCanvas_ui' ) {
                 mouseClickCoords.x = e.offsetX;
@@ -1855,11 +2048,14 @@ function canvasApp()  {
                 break;
             case 'KeyP': //пауза
                 if ( !game.isGamePaused && game.isPlayTheGame ) {
+                    game.pauseStart = undefined;
                     game.isGamePaused = true;
+                    game.isRedrawPauseBulb = true;
                     game.isRedrawSideUI = true;
                 }else
                     if ( game.isGamePaused && game.isPlayTheGame ) {
                         game.isGamePaused = false;
+                        game.isRedrawPauseBulb = true;
                         game.isRedrawSideUI = true;
                     }
                 game.isPressPause = true;
@@ -1872,7 +2068,6 @@ function canvasApp()  {
     document.addEventListener( 'keyup', keyUpHandler );
 
     const clickSound = document.getElementById( 'clicksound' );
-
 
     const imageBG = new Image();
     const imageStage = new Image();
@@ -1910,73 +2105,4 @@ function canvasApp()  {
             console.log("images don't loaded");
         }
     }, 1000 ); 
-
-    function startSound( bool, frequency ) {
-        let audioContext = new ( this.AudioContext || this.webkitAudioContext )();
-        let notes;
-
-        // Определить базовый звук как комбинацию из трех чистых синусоидальных волн.
-        if ( !frequency ) {
-            notes = [ 293.7, 370.0, 440.0 ]; //Аккорд ре мажор: ре, фа-диез и ля 293.7, 370.0, 440.0
-        }else{
-            notes = [ frequency ]; //Аккорд ре мажор: ре, фа-диез и ля 293.7, 370.0, 440.0
-        }
-        let oscillators = null;
-
-        if ( bool ) {
-            
-            // Создать узлы генератора для каждой ноты, которые мы хотим воспроизводить.
-                oscillators = notes.map( note => {
-                    let o = audioContext.createOscillator();
-                    o.frequency.value = note;
-                    return o;
-                });
-
-            const type = 'square';
-
-            oscillators.forEach( o => o.type = type );
-            
-            // Формировать звук, регулируя его громкость с течением времени.
-            // Начиная с момента 0, быстро увеличить громкость до полной.
-            // Затем, начиная с момента 0.1, медленно уменьшить громкость до 0.
-            let volumeControl = audioContext.createGain();
-            //volumeControl.gain.setTargetAtTime( 1, 0.0, 0.02 );
-            //volumeControl.gain.setTargetAtTime( 0, 0.1, 0.2 );
-            //Мы собираемся посылать звук в стандартное место назначения: динамики пользователя.
-            let speakers = audioContext.destination;
-            // Подключить каждую исходную ноту к регулятору громкости.
-
-            oscillators.forEach( о => о.connect( volumeControl ) );
-            // И подключить выход регулятора громкости к динамикам.
-            volumeControl.connect( speakers );
-            // Теперь начать воспроизведение звуков и позволить ему длиться 1.25 секунды.
-            let startTime = audioContext.currentTime;
-            let stopTime = startTime + 0.5; //1.25
-
-            oscillators.forEach( o => {
-                o.start( startTime );
-                o.stop( stopTime );
-            });
-        
-        }
-    }
-
-    function startMusic() {
-        let arrFreq = [ 523.25, 587.32, 659.26, 698.46 ];
-
-        for ( let i = 0; i < arrFreq.length; i++ ) {
-            let delay = 70 * i * 2*4;
-            setTimeout( () => {        
-                startSound( true, arrFreq[i] );
-            }, delay );
-        }
-
-        for ( let i = arrFreq.length - 1, j = 0; i >= 0; i--, j++ ) {
-            let delay = 2500 + 70 * j * 2*4;
-            setTimeout( () => {        
-                startSound( true, arrFreq[i] );
-            }, delay );
-        }
-    }
-
 }
