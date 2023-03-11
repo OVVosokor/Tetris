@@ -1822,7 +1822,7 @@ function canvasApp()  {
         resetGame() {
             if ( this.isGameReset && this.isPlayTheGame ) {
                 this.score = 0;
-                this.#defaultSpeed = 0.125;
+                //this.#defaultSpeed = 0.125;
                 this.#speed = this.#defaultSpeed;
 
                 ctxStage.clearRect( 0, 0, canvasStage.width, canvasStage.height )
@@ -1838,7 +1838,6 @@ function canvasApp()  {
                         }
                     }
                 }
-    
                 { //arrGameOverBoxes
                     for ( let row = 0; row < 20; row++ ) {
                         this.arrGameOverBoxes[row] = [];
