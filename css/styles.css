@@ -2,6 +2,7 @@
     display: flex;
     position: relative;
     justify-content: center;
+    margin-top: 20px;
 }
 html {
     min-width: 480px;
