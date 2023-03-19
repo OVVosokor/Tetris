@@ -1522,6 +1522,8 @@ function canvasApp()  {
                 }, 400 );
             }
         }
+        //1й вариант функции
+        /*
         testCollidingWithBoxes( k ) {
             for ( const boxCurrent of this.arrCurrentStageBoxes ) {   //проверка пересечения с блоками
                 for ( let row = 0; row < 20; row++ ) {
@@ -1542,7 +1544,46 @@ function canvasApp()  {
                     }
                 }
             }
+        }*/
+        testCollidingWithBoxes( k ) {
+            for ( const boxCurrent of this.arrCurrentStageBoxes ) {   //проверка пересечения с блоками
+                for ( let row = 0; row < 20; row++ ) {
+                    for ( let col = 0; col < 10; col++ ) {
+                        if ( typeof this.arrStageBoxes[row][col] === 'object' ) {
+                            if ( this.boundingBoxCollide( boxCurrent, this.arrStageBoxes[row][col] ) ) {
+                                let dX =  ( boxCurrent.coords.x + boxCurrent.size.width ) - this.arrStageBoxes[row][col].coords.x + 1;
+
+                                for ( const boxCurrent of this.arrCurrentStageBoxes ) {
+                                    boxCurrent.coords.x += dX * k;
+                                    //console.log( dX, this.isElementLeft, this.isElementRight );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
+
+        boundingBoxCollide( object1, object2 ) {
+    
+            var left1 = object1.coords.x;
+            var left2 = object2.coords.x;
+            var right1 = object1.coords.x + object1.size.width;
+            var right2 = object2.coords.x + object2.size.width;
+            var top1 = object1.coords.y;
+            var top2 = object2.coords.y;
+            var bottom1 = object1.coords.y + object1.size.height;
+            var bottom2 = object2.coords.y + object2.size.height;
+            
+            if (bottom1 < top2) return(false);
+            if (top1 > bottom2) return(false);
+            
+            if (right1 < left2) return(false);
+            if (left1 > right2) return(false);
+            
+            return(true);
+        }
+
         moveLeftElement() {
             if ( this.isElementLeft ) {
                 const offsetLeft = 21;
